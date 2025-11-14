@@ -23,7 +23,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
 
   return (
     <aside
-      className={`w-64 bg-gray-900 text-white p-4 h-[calc(100vh-64px)] ${
+      className={`w-64 bg-gray-900 text-white p-4 h-[calc(100vh-50px)] ${
         className || ""
       }`}
     >
