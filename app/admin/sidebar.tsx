@@ -1,51 +1,37 @@
+"use client";
+
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  User,
-  Book,
-  Inbox,
-  Database,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, Users, Book, Inbox, Database } from "lucide-react";
 
 export default function AdminSidebar() {
+  const pathname = usePathname();
+
+  const items = [
+    { href: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard /> },
+    { href: "/supervisor/users", label: "Trainees", icon: <Users /> },
+    { href: "/admin/users", label: "Supervisors", icon: <Users /> },
+    { href: "/admin/admin-users", label: "Admins", icon: <Users /> },
+    { href: "/supervisor/courses", label: "Courses", icon: <Book /> },
+    { href: "/admin/daily-reports", label: "Reports", icon: <Inbox /> },
+    { href: "/supervisor/subjects", label: "Master Data", icon: <Database /> },
+  ];
+
   return (
-    <aside className="w-64 bg-gray-900 text-white p-4 min-h-screen">
+    <aside className="w-64 bg-gray-900 text-white p-4 min-h-[calc(100vh-64px)] overflow-auto">
       <ul className="space-y-3">
-        <li>
-          <Link href="/admin" className="flex gap-3 items-center">
-            <LayoutDashboard /> Dashboard
-          </Link>
-        </li>
-        <li>
-          <Link href="/supervisor/users" className="flex gap-3 items-center">
-            <User /> Trainees
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/users" className="flex gap-3 items-center">
-            <User /> Supervisors
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/admin-users" className="flex gap-3 items-center">
-            <User /> Admins
-          </Link>
-        </li>
-        <li>
-          <Link href="/supervisor/courses" className="flex gap-3 items-center">
-            <Book /> Courses
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/daily-reports" className="flex gap-3 items-center">
-            <Inbox /> Reports
-          </Link>
-        </li>
-        <li>
-          <Link href="/supervisor/subjects" className="flex gap-3 items-center">
-            <Database /> Master Data
-          </Link>
-        </li>
+        {items.map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              className={`flex gap-3 items-center p-2 rounded ${
+                pathname === item.href ? "bg-gray-700" : ""
+              }`}
+            >
+              {item.icon} {item.label}
+            </Link>
+          </li>
+        ))}
       </ul>
     </aside>
   );

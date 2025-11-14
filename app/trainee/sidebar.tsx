@@ -9,8 +9,16 @@ export default function TraineeSidebar() {
 
   const items = [
     { href: "/trainee/courses", label: "My Courses", icon: <BookOpen /> },
-    { href: "/trainee/reports", label: "Report History", icon: <History /> },
-    { href: "/trainee/reports/new", label: "Daily Report", icon: <Calendar /> },
+    {
+      href: "/trainee/daily-reports",
+      label: "Report History",
+      icon: <History />,
+    },
+    {
+      href: "/trainee/daily-reports/new",
+      label: "Daily Report",
+      icon: <Calendar />,
+    },
   ];
 
   return (

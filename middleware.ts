@@ -18,7 +18,7 @@ export function middleware(req: NextRequest) {
       role === "supervisor"
         ? "/supervisor/dashboard"
         : role === "trainee"
-        ? "/trainee/dashboard"
+        ? "/trainee/courses"
         : role === "admin"
         ? "/admin/dashboard"
         : "/";
@@ -36,7 +36,7 @@ export function middleware(req: NextRequest) {
       role === "supervisor"
         ? "/supervisor/dashboard"
         : role === "trainee"
-        ? "/trainee/dashboard"
+        ? "/trainee/courses"
         : role === "admin"
         ? "/admin/dashboard"
         : "/";
