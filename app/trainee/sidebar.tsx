@@ -4,7 +4,11 @@ import Link from "next/link";
 import { BookOpen, History, Calendar } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-export default function TraineeSidebar() {
+interface TraineeSidebarProps {
+  className?: string;
+}
+
+export default function TraineeSidebar({ className }: TraineeSidebarProps) {
   const pathname = usePathname();
 
   const items = [
@@ -22,7 +26,11 @@ export default function TraineeSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-gray-900 text-white p-4 min-h-screen">
+    <aside
+      className={`w-64 bg-gray-900 text-white p-4 h-[calc(100vh-64px)] z-10 ${
+        className || ""
+      }`}
+    >
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.href}>

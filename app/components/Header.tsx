@@ -10,7 +10,7 @@ import {
 
 export default function Header() {
   return (
-    <header className="fixed top-0 left-0 w-full bg-black text-white px-6 py-3 flex items-center justify-between">
+    <header className="fixed top-0 left-0 w-full bg-black text-white px-6 py-3 flex items-center justify-between z-20 shadow-lg">
       <Link href="/" className="text-xl font-bold">
         Training System
       </Link>

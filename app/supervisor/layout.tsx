@@ -3,23 +3,19 @@
 import Header from "@/app/components/Header";
 import SupervisorSidebar from "./sidebar";
 
-export default  function SupervisorLayout({
+export default function SupervisorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
-
   return (
-    <div className="min-h-screen flex flex-col">
-
+    <div>
       <Header />
 
-      <div className="flex flex-1 pt-16">
+      <div className="pt-10 flex">
+        <SupervisorSidebar className="fixed top-13 left-0" />
 
-        <SupervisorSidebar />
-
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 ml-64 p-6">{children}</main>
       </div>
     </div>
   );

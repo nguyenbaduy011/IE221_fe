@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Book, Inbox, Database } from "lucide-react";
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  className?: string;
+}
+
+export default function AdminSidebar({ className }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const items = [
@@ -18,7 +22,11 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-gray-900 text-white p-4 min-h-[calc(100vh-64px)] overflow-auto">
+    <aside
+      className={`w-64 bg-gray-900 text-white p-4 h-[calc(100vh-64px)] ${
+        className || ""
+      }`}
+    >
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.href}>
