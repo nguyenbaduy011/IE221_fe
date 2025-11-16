@@ -23,11 +23,20 @@ export interface User {
 /**
  * Dữ liệu trả về từ API /auth/login/ (Serializer tùy chỉnh)
  */
-export interface AuthResponse {
+export interface AuthLoginResponse {
   status: string;
   data: {
     access: string;
     refresh: string;
     user: User;
   };
+  message: string;
+}
+
+export interface AuthRegisterResponse {
+  status: string;
+  data: {
+    user: User;
+  };
+  message: string;
 }

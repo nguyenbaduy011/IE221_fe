@@ -7,23 +7,16 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { User } from "@//types/user";
-
-// Kiểu trả về API
-export interface AuthResponse {
-  status: string;
-  data: {
-    access: string;
-    refresh: string;
-    user: User;
-  };
-}
+import { AuthLoginResponse, User } from "@//types/user";
+import { tokenUtils } from "@/lib/tokenUtils";
+import { authApi } from "@/lib/authApi";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
-  accessToken: string | null;
   isAuthenticated: boolean;
-  login: (data: AuthResponse) => void;
+  isLoading: boolean;
+  login: (data: AuthLoginResponse) => void;
   logout: () => void;
 }
 
@@ -35,47 +28,57 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = tokenUtils.getAccessToken();
     const savedUser = localStorage.getItem("user");
 
-    if (token) setAccessToken(token);
-    if (savedUser) setUser(JSON.parse(savedUser));
-
-    setLoading(false);
+    if (token) {
+      setIsAuthenticated(true);
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    }
+    setIsLoading(false);
   }, []);
 
-  const login = (response: AuthResponse) => {
-    const { access, refresh, user } = response.data;
+  const login = (response: AuthLoginResponse) => {
+    tokenUtils.setTokens(response);
 
-    localStorage.setItem("accessToken", access);
-    localStorage.setItem("refreshToken", refresh);
+    const { user } = response.data;
     localStorage.setItem("user", JSON.stringify(user));
-
-    setAccessToken(access);
     setUser(user);
+    setIsAuthenticated(true);
   };
 
-  const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+  const logout = async () => {
+    const refreshToken = tokenUtils.getRefreshToken();
+
+    if (refreshToken) {
+      try {
+        await authApi.logout(refreshToken);
+      } catch (error) {
+        console.error("Logout API failed (ignoring):", error);
+      }
+    }
+
+    tokenUtils.clearTokens();
+
     localStorage.removeItem("user");
-
-    setAccessToken(null);
     setUser(null);
+    setIsAuthenticated(false);
+    router.push("/login");
   };
-
-  if (loading) return <div>Loading...</div>;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        accessToken,
-        isAuthenticated: !!accessToken,
+        isAuthenticated, 
+        isLoading, 
         login,
         logout,
       }}
