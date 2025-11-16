@@ -7,13 +7,13 @@ export function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   if (!token) {
-    if (path !== "/auth/login") {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
+    if (path !== "/login") {
+      return NextResponse.redirect(new URL("/login", req.url));
     }
     return NextResponse.next();
   }
 
-  if (path === "/auth/login") {
+  if (path === "/login") {
     const redirectTo =
       role === "supervisor"
         ? "/supervisor/dashboard"
@@ -48,7 +48,7 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/auth/login",
+    "/login",
     "/trainee/:path*",
     "/supervisor/:path*",
     "/admin/:path*",
