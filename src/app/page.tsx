@@ -1,13 +1,31 @@
 "use client";
 
+import { Button } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   if (!isAuthenticated) {
     console.log("Auth user:", user, "isAuthenticated:", isAuthenticated);
-    return <div>Vui lòng đăng nhập để xem thông tin.</div>;
+    return (
+      <div>
+        <div>Vui lòng đăng nhập để xem thông tin.</div>
+        <Button
+          onClick={() => {
+            router.push("/login");
+          }}
+        >
+          Đăng nhập
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -30,6 +48,8 @@ export default function Home() {
           <p>
             <strong>ID:</strong> {user?.id}
           </p>
+          {/* Button này giờ đã hoạt động */}
+          <Button onClick={handleLogout}>Đăng xuất</Button>
         </div>
       </div>
     </div>

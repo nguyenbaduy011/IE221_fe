@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, AlertCircle } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -11,18 +10,18 @@ export default function NotFound() {
           404
         </h1>
         <h2 className="text-xl font-semibold text-foreground">
-          Page not found
+          Không tìm thấy trang
         </h2>
         <p className="text-muted-foreground mt-2">
-          Sorry, we couldn&apos;t find the page you&apos;re looking for. It
-          might have been moved, deleted, or never existed.
+          Xin lỗi, chúng tôi không thể tìm thấy trang bạn đang truy cập. Có thể
+          trang đã bị di chuyển, xóa, hoặc chưa từng tồn tại.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
           <Button asChild variant="outline" size="lg" className="gap-2">
             <Link href="/">
               <ArrowLeft className="h-4 w-4" />
-              Go back
+              Quay lại
             </Link>
           </Button>
         </div>
