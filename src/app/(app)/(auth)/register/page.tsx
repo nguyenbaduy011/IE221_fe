@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
   registerSchemaTrainee,
@@ -14,220 +13,222 @@ import {
 } from "@/validations/authValidation";
 import { authApi } from "@/lib/authApi";
 import { useRouter } from "next/navigation";
-
-import { Progress } from "@/components/ui/progress";
-import { Check, X, Eye, EyeOff, Lock } from "lucide-react";
+import { isAxiosError } from "axios";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [passwordRequirements, setPasswordRequirements] = useState({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    special: false,
-  });
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
-    watch,
     handleSubmit,
+    watch,
+    control,
     formState: { errors },
   } = useForm<RegisterFormValuesTrainee>({
     resolver: zodResolver(registerSchemaTrainee),
   });
 
-  const passwordValue = watch("password");
+  const password = useWatch({ control });
+  const passwordValue =
+    typeof password === "object" ? (password as any)?.password || "" : "";
 
-  useEffect(() => {
-    const pwd = passwordValue || "";
-
-    const req = {
-      length: pwd.length >= 8,
-      uppercase: /[A-Z]/.test(pwd),
-      lowercase: /[a-z]/.test(pwd),
-      number: /[0-9]/.test(pwd),
-      special: /[^A-Za-z0-9]/.test(pwd),
-    };
-
-    const strength =
-      (req.length ? 20 : 0) +
-      (req.uppercase ? 20 : 0) +
-      (req.lowercase ? 20 : 0) +
-      (req.number ? 20 : 0) +
-      (req.special ? 20 : 0);
-
-    setPasswordRequirements(req);
-    setPasswordStrength(strength);
-  }, [passwordValue]);
-
-  const getStrengthColor = () => {
-    if (passwordStrength < 40) return "bg-destructive";
-    if (passwordStrength < 80) return "bg-amber-500";
-    return "bg-green-500";
+  const getPasswordStrength = (pwd: string) => {
+    let strength = 0;
+    if (pwd.length >= 8) strength++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+    if (/\d/.test(pwd)) strength++;
+    if (/[!@#$%^&*]/.test(pwd)) strength++;
+    return strength;
   };
 
+  const getPasswordStrengthColor = () => {
+    const strength = getPasswordStrength(passwordValue);
+    if (strength <= 1) return "bg-red-500";
+    if (strength <= 2) return "bg-yellow-500";
+    if (strength <= 3) return "bg-blue-500";
+    return "bg-green-500";
+  };
 
   const onSubmit = async (data: RegisterFormValuesTrainee) => {
     setIsLoading(true);
     try {
       const res = await authApi.register(data);
 
-      if (res.status === 201 && res.data.message) {
-        toast.success(res.data.message);
+      if (res.status === 201) {
+        sessionStorage.setItem("pending_email", data.email);
 
+        toast.success(
+          res.data?.message || "Đăng ký thành công! Vui lòng kiểm tra email."
+        );
+
+        router.push("/verify-email");
       } else {
         toast.error(res.data?.message || "Đăng ký thất bại");
       }
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Đã xảy ra lỗi. Vui lòng thử lại");
+      console.error("Register Error:", err);
+
+      if (isAxiosError(err) && err.response) {
+        const errorData = err.response.data as any;
+
+        if (errorData.email) {
+          toast.error(`Email: ${errorData.email[0]}`);
+        } else if (errorData.detail) {
+          toast.error(errorData.detail);
+        } else if (errorData.message) {
+          toast.error(errorData.message);
+        } else {
+          toast.error("Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+        }
+      } else {
+        toast.error("Lỗi kết nối hoặc lỗi không xác định.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-      <div className="w-full max-w-md bg-background rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
+        <h1 className="text-3xl font-bold mb-2">Sign Up</h1>
+        <p className="text-gray-600 mb-8">Create your account to get started</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Fullname */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* Full Name Field */}
           <div>
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" {...register("fullName")} />
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Full Name
+            </label>
+            <Input {...register("fullName")} placeholder="John Doe" />
             {errors.fullName && (
-              <p className="text-sm text-destructive">
+              <p className="text-red-600 text-xs mt-1">
                 {errors.fullName.message}
               </p>
             )}
           </div>
 
-          {/* Email */}
+          {/* Email Field */}
           <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register("email")} />
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email
+            </label>
+            <Input
+              type="email"
+              {...register("email")}
+              placeholder="you@example.com"
+            />
             {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+              <p className="text-red-600 text-xs mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
-          {/* Password */}
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          {/* Password Field */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Password
+            </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="password"
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
-                className="pl-10 pr-10"
+                placeholder="Enter password"
+                className="pr-10"
               />
-              <Button
+              <button
                 type="button"
-                variant={null}
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-              </Button>
+              </button>
             </div>
-
+            {passwordValue && (
+              <div className="mt-2">
+                <div className="flex gap-1">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded ${
+                        i < getPasswordStrength(passwordValue)
+                          ? getPasswordStrengthColor()
+                          : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {getPasswordStrength(passwordValue) <= 1 && "Weak"}
+                  {getPasswordStrength(passwordValue) === 2 && "Fair"}
+                  {getPasswordStrength(passwordValue) === 3 && "Good"}
+                  {getPasswordStrength(passwordValue) >= 4 && "Strong"}
+                </p>
+              </div>
+            )}
             {errors.password && (
-              <p className="text-sm text-destructive">
+              <p className="text-red-600 text-xs mt-1">
                 {errors.password.message}
               </p>
             )}
-
-            {/* Password Strength Bar */}
-            <div className="space-y-1">
-              <div className="text-sm font-medium">Password Strength</div>
-              <Progress
-                value={passwordStrength}
-                className={`h-2 ${getStrengthColor()}`}
-              />
-            </div>
-
-            {/* Password Requirements */}
-            <ul className="space-y-1 text-sm">
-              {[
-                { key: "length", label: "At least 8 characters" },
-                { key: "uppercase", label: "At least one uppercase letter" },
-                { key: "lowercase", label: "At least one lowercase letter" },
-                { key: "number", label: "At least one number" },
-                { key: "special", label: "At least one special character" },
-              ].map((item) => {
-                const ok =
-                  passwordRequirements[
-                    item.key as keyof typeof passwordRequirements
-                  ];
-                return (
-                  <li key={item.key} className="flex items-center gap-2">
-                    {ok ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <X className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span
-                      className={
-                        ok ? "text-foreground" : "text-muted-foreground"
-                      }
-                    >
-                      {item.label}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
           </div>
 
-          {/* Confirm Password */}
+          {/* Confirm Password Field */}
           <div>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Confirm Password
+            </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 {...register("confirmPassword")}
-                className="pl-10 pr-10"
+                placeholder="Confirm password"
+                className="pr-10"
               />
-              <Button
+              <button
                 type="button"
-                variant={null}
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="h-4 w-4" />
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-              </Button>
+              </button>
             </div>
-
             {errors.confirmPassword && (
-              <p className="text-sm text-destructive">
+              <p className="text-red-600 text-xs mt-1">
                 {errors.confirmPassword.message}
               </p>
             )}
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Registering..." : "Register"}
+            {isLoading ? "Creating account..." : "Sign Up"}
           </Button>
+
+          {/* Sign in Link */}
+          <div className="text-center text-sm">
+            <span className="text-gray-600">Already have an account? </span>
+            <button
+              type="button"
+              className="text-blue-600 font-semibold hover:underline"
+              onClick={() => router.push("/login")}
+            >
+              Sign in
+            </button>
+          </div>
         </form>
       </div>
     </div>

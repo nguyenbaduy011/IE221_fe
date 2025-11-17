@@ -4,7 +4,7 @@ import { z } from "zod";
 // Login schema
 export const loginSchema = z.object({
   email: z.email("Email không hợp lệ"),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  password: z.string(),
   rememberMe: z.boolean().optional(),
 });
 

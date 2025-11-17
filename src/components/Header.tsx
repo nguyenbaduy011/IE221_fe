@@ -7,8 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@//components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "./ui";
 
 export default function Header() {
+  const { logout } = useAuth();
   return (
     <header className="fixed top-0 left-0 w-full bg-black text-white px-6 py-3 flex items-center justify-between z-20 shadow-lg">
       <Link href="/" className="text-xl font-bold">
@@ -28,9 +31,7 @@ export default function Header() {
               <Link href="/settings">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-red-600">
-              <form action="/logout" method="POST">
-                Logout
-              </form>
+              <Button onClick={() => logout()}>Logout</Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
