@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // lib/axiosClient.ts
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from "axios";
 import { tokenUtils } from "./tokenUtils";
 
 const axiosClient = axios.create({
@@ -57,10 +61,16 @@ axiosClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Chỉ xử lý lỗi 401 (Unauthorized) và không phải là request retry
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (originalRequest.url && originalRequest.url.includes("/auth/logout")) {
+        return Promise.reject(error);
+      }
+
+      if (originalRequest.url && originalRequest.url.includes("/auth/login")) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
-        // Nếu đang refresh, đẩy request vào hàng đợi
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -80,25 +90,25 @@ axiosClient.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false;
         tokenUtils.clearTokens();
-        // Chuyển hướng về trang login, ví dụ:
-        // window.location.href = "/login";
+        // Chuyển hướng về trang login
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
         return Promise.reject(error);
       }
 
       try {
         // Gọi API để refresh token
-        // để request refresh này không bị interceptor bắt lại)
         const rs = await axios.post(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/refresh/`, // Điểm cuối API refresh của bạn
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/refresh/`,
           {
             refresh: refreshToken,
           }
         );
 
-        const { access } = rs.data; // Giả sử API trả về { access: "new_token" }
+        const { access } = rs.data.data || rs.data;
 
-        // Lưu access token mới (API refresh thường không trả về refresh token mới)
-        localStorage.setItem("access_token", access);
+        tokenUtils.setAccessToken(access);
 
         // Cập nhật header cho request gốc và xử lý hàng đợi
         axiosClient.defaults.headers.common["Authorization"] =
@@ -109,11 +119,14 @@ axiosClient.interceptors.response.use(
         // Thực hiện lại request gốc đã thất bại
         return axiosClient(originalRequest);
       } catch (_error) {
-        // Nếu refresh token cũng hết hạn
+        // Nếu refresh token cũng hết hạn hoặc lỗi (như lỗi 500 User Not Found)
         processQueue(_error as AxiosError, null);
         tokenUtils.clearTokens();
+
         // Chuyển hướng về trang login
-        // window.location.href = "/login";
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
         return Promise.reject(_error);
       } finally {
         isRefreshing = false;

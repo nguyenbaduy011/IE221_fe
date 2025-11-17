@@ -1,7 +1,7 @@
 "use client";
 
 import Header from "@//components/Header";
-import SupervisorSidebar from "./sidebar";
+import SupervisorSidebar from "../../components/Sidebar";
 import { Toaster } from "@//components/ui/sonner";
 
 export default function SupervisorLayout({

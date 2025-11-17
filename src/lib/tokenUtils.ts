@@ -8,6 +8,14 @@ export const tokenUtils = {
     localStorage.setItem("refresh_token", data.data.refresh);
   },
 
+  setAccessToken: (token: string) => {
+    localStorage.setItem("access_token", token);
+  },
+
+  setRefreshToken: (token: string) => {
+    localStorage.setItem("refresh_token", token);
+  },
+
   getAccessToken: (): string | null => {
     return localStorage.getItem("access_token");
   },

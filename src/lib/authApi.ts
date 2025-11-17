@@ -50,4 +50,8 @@ export const authApi = {
     // Gọi đến API GET /auth/activate/<uid>/<token>/ của Django
     return axiosClient.get(`/auth/activate/${uidb64}/${token}/`);
   },
+
+  resendActivation(email: string) {
+    return axiosClient.post("/auth/resend-activation/", { email });
+  },
 };
