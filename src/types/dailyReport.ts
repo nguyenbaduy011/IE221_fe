@@ -8,7 +8,7 @@ export interface DailyReport {
     id: number;
     name: string;
   };
-  content: string | null;
+  content: string;
   status: DailyReportStatus;
   created_at: string;
   updated_at: string;
