@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/userApi.ts
 import axiosClient from "./axiosClient";
 import { User, UserRole } from "@/types/user";
 
-// Định nghĩa kiểu dữ liệu trả về từ API (API Response Wrapper)
+// Định nghĩa kiểu dữ liệu trả về từ API
 interface ApiResponse<T> {
   status: string;
   message: string;
@@ -17,35 +16,55 @@ export interface CreateUserPayload {
   role: UserRole;
 }
 
+export interface UpdateUserPayload {
+  email?: string;
+  full_name?: string;
+  role?: UserRole;
+  birthday?: string | null;
+  gender?: number | null;
+}
+
+// Kiểu dữ liệu cho bộ lọc
+export interface UserQueryParams {
+  search?: string;
+  role?: string;
+  status?: string;
+}
+
 export const userApi = {
-  // Lấy danh sách user
-  getAll() {
-    return axiosClient.get<ApiResponse<User[]>>("/api/admin/users/");
+  // SỬA Ở ĐÂY: Thêm params vào hàm getAll
+  getAll(params?: UserQueryParams) {
+    return axiosClient.get<ApiResponse<User[]>>("/api/admin/users/", {
+      params,
+    });
   },
 
-  // Lấy chi tiết user
   getById(id: number) {
     return axiosClient.get<ApiResponse<User>>(`/api/admin/users/${id}/`);
   },
 
-  // Tạo user mới
   create(data: CreateUserPayload) {
     return axiosClient.post<ApiResponse<User>>("/api/admin/users/", data);
   },
 
-  // Xóa user
+  update(id: number, data: UpdateUserPayload) {
+    // Dùng PATCH hoặc PUT tùy backend, thường update 1 phần dùng PATCH
+    return axiosClient.patch<ApiResponse<User>>(
+      `/api/admin/users/${id}/`,
+      data
+    );
+  },
+
   delete(id: number) {
     return axiosClient.delete<ApiResponse<null>>(`/api/admin/users/${id}/`);
   },
 
-  // Khóa tài khoản
   deactivate(id: number) {
     return axiosClient.post<ApiResponse<null>>(
       `/api/admin/users/${id}/deactivate/`
     );
   },
 
-  // Mở khóa tài khoản
   activate(id: number) {
     return axiosClient.post<ApiResponse<null>>(
       `/api/admin/users/${id}/activate/`

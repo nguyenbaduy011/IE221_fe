@@ -11,6 +11,7 @@ import { loginSchema, LoginFormValues } from "@/validations/authValidation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { isAxiosError } from "axios";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,7 +50,6 @@ export default function LoginPage() {
 
       if (isAxiosError(err) && err.response) {
         const data = err.response.data as any;
-        console.log("Backend Response Data:", data);
         const isNotActive =
           data.errors?.detail === "ACCOUNT_NOT_ACTIVE" ||
           data.errors?.code === "account_not_active";
@@ -76,15 +76,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-        <h1 className="text-3xl font-bold mb-2">Sign In</h1>
-        <p className="text-gray-600 mb-8">Enter your credentials to continue</p>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md bg-card rounded-lg shadow-md p-8">
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Sign In</h1>
+        <p className="text-muted-foreground mb-8">
+          Enter your credentials to continue
+        </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Email Field */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold mb-2 text-foreground">
               Email
             </label>
             <Input
@@ -93,7 +95,7 @@ export default function LoginPage() {
               placeholder="you@example.com"
             />
             {errors.email && (
-              <p className="text-red-600 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.email.message}
               </p>
             )}
@@ -101,7 +103,7 @@ export default function LoginPage() {
 
           {/* Password Field */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold mb-2 text-foreground">
               Password
             </label>
             <Input
@@ -110,7 +112,7 @@ export default function LoginPage() {
               placeholder="Enter password"
             />
             {errors.password && (
-              <p className="text-red-600 text-xs mt-1">
+              <p className="text-destructive text-xs mt-1">
                 {errors.password.message}
               </p>
             )}
@@ -122,28 +124,28 @@ export default function LoginPage() {
               type="checkbox"
               {...register("rememberMe")}
               id="remember"
-              className="w-4 h-4 accent-blue-600 rounded"
+              className="w-4 h-4 accent-primary rounded"
             />
-            <label htmlFor="remember" className="text-sm text-gray-700">
+            <label htmlFor="remember" className="text-sm text-foreground">
               Remember me
             </label>
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
 
           {/* Sign up Link */}
-          <div className="text-center text-sm">
-            <span className="text-gray-600">Don&apos;t have an account? </span>
-            <button
+          <div className="text-center text-sm text-foreground/70">
+            <span>Don&apos;t have an account? </span>
+            <Link
               type="button"
-              className="text-blue-600 font-semibold hover:underline"
-              onClick={() => router.push("/register")}
+              className="text-primary font-semibold hover:underline"
+              href="/register"
             >
               Sign up
-            </button>
+            </Link>
           </div>
         </form>
       </div>

@@ -16,7 +16,6 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     const pendingEmail = sessionStorage.getItem("pending_email");
-
     if (!pendingEmail) {
       toast.error("No account found to verify.");
       router.push("/login");
@@ -58,37 +57,40 @@ export default function VerifyEmailPage() {
   if (!email) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-muted px-4">
+      <div className="w-full max-w-md bg-card text-card-foreground rounded-lg shadow p-8 text-center">
+        {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
-            <Mail className="h-8 w-8 text-blue-600" />
+          <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Mail className="h-8 w-8 text-primary" />
           </div>
         </div>
 
         <h1 className="text-3xl font-bold mb-2">Verify Your Email</h1>
 
-        <p className="text-gray-600 mb-6">
+        <p className="text-muted-foreground mb-6">
           We sent a verification link to{" "}
-          <span className="font-semibold text-gray-900">{email}</span>
+          <span className="font-semibold text-foreground">{email}</span>
           <br />
           Please check your email to activate your account.
         </p>
 
-        <div className="bg-gray-50 p-4 rounded-md mb-6">
-          <p className="text-sm font-medium text-gray-600 mb-2">
+        {/* Countdown box */}
+        <div className="bg-muted p-4 rounded-md mb-6 border border-border">
+          <p className="text-sm font-medium text-muted-foreground mb-2">
             Resend available in:
           </p>
-          <p className="text-2xl font-mono font-bold text-gray-900">
+          <p className="text-2xl font-mono font-bold text-foreground">
             {formatTime(countdown)}
           </p>
         </div>
 
+        {/* Buttons */}
         <div className="space-y-3">
           <Button
             onClick={handleResendEmail}
             disabled={isResending || countdown > 0}
-            className="w-full"
+            className="w-full min-h-10"
           >
             {isResending ? (
               <>
@@ -104,7 +106,7 @@ export default function VerifyEmailPage() {
 
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full min-h-10"
             onClick={() => router.push("/login")}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

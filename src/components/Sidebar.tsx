@@ -1,41 +1,129 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Users, Book, Inbox, Database } from "lucide-react";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Users,
+  Book,
+  Inbox,
+  Database,
+  BookOpen,
+  History,
+  Calendar,
+} from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
-interface SupevisorSidebarProps {
+interface SidebarProps {
   className?: string;
 }
 
-export default function SupervisorSidebar({ className }: SupevisorSidebarProps) {
+export default function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
 
-  const items = [
-    {
-      href: "/supervisor/dashboard",
-      label: "Dashboard",
-      icon: <LayoutDashboard />,
-    },
-    { href: "/supervisor/users", label: "Trainees", icon: <Users /> },
-    { href: "/supervisor/courses", label: "Courses", icon: <Book /> },
-    { href: "/supervisor/daily-reports", label: "Reports", icon: <Inbox /> },
-    { href: "/supervisor/subjects", label: "Master Data", icon: <Database /> },
-  ];
+  if (!user) return null;
+
+  type MenuItem = { href: string; label: string; icon: React.ReactNode };
+  let items: MenuItem[] = [];
+
+  switch (user.role) {
+    case "ADMIN":
+      items = [
+        {
+          href: "/admin/dashboard",
+          label: "Dashboard",
+          icon: <LayoutDashboard size={20} />,
+        },
+        {
+          href: "/admin/users",
+          label: "Users",
+          icon: <Users size={20} />,
+        },
+        {
+          href: "/admin/courses",
+          label: "Courses",
+          icon: <Book size={20} />,
+        },
+        {
+          href: "/admin/daily-reports",
+          label: "Reports",
+          icon: <Inbox size={20} />,
+        },
+        {
+          href: "/admin/master-data",
+          label: "Master Data",
+          icon: <Database size={20} />,
+        },
+      ];
+      break;
+    case "SUPERVISOR":
+      items = [
+        {
+          href: "/supervisor/dashboard",
+          label: "Dashboard",
+          icon: <LayoutDashboard size={20} />,
+        },
+        {
+          href: "/supervisor/users",
+          label: "Trainees",
+          icon: <Users size={20} />,
+        },
+        {
+          href: "/supervisor/courses",
+          label: "Courses",
+          icon: <Book size={20} />,
+        },
+        {
+          href: "/supervisor/daily-reports",
+          label: "Reports",
+          icon: <Inbox size={20} />,
+        },
+        {
+          href: "/supervisor/subjects",
+          label: "Master Data",
+          icon: <Database size={20} />,
+        },
+      ];
+      break;
+    case "TRAINEE":
+      items = [
+        {
+          href: "/trainee/courses",
+          label: "My Courses",
+          icon: <BookOpen size={20} />,
+        },
+        {
+          href: "/trainee/daily-reports",
+          label: "Report History",
+          icon: <History size={20} />,
+        },
+        {
+          href: "/trainee/daily-reports/new",
+          label: "Daily Report",
+          icon: <Calendar size={20} />,
+        },
+      ];
+      break;
+    default:
+      return null;
+  }
 
   return (
     <aside
-      className={`w-64 bg-gray-900 text-white p-4 h-[calc(100vh-50px)] ${
+      className={`w-64 bg-card border-r text-card-foreground p-4 h-[calc(100vh-64px)] fixed left-0 top-0 ${
         className || ""
       }`}
     >
-      <ul className="space-y-3">
+      <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
-              className={`flex gap-3 items-center p-2 rounded ${
-                pathname === item.href ? "bg-gray-700" : ""
+              className={`flex gap-3 items-center p-3 rounded-lg transition ${
+                pathname === item.href
+                  ? "bg-accent text-accent-foreground"
+                  : "hover:bg-muted"
               }`}
             >
               {item.icon} {item.label}
