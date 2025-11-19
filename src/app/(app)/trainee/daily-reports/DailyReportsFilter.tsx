@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { FilterState } from "./page";
+import { FilterState } from "./DailyReportsClient";
 
 type Course = { id: number; name: string };
 
