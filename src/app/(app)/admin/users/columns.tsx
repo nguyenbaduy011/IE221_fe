@@ -4,11 +4,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { User } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import dayjs from "dayjs";
+import { UserDetailDialog } from "@/components/UserDetailDialog";
 
-// Hàm trả về danh sách cột, nhận vào các action handler từ component cha
 export const getColumns = (
   onToggleStatus: (user: User) => void,
-  onEdit: (user: User) => void
+  onEdit: (user: User) => void,
+  sessionUser: User | null
 ): ColumnDef<User>[] => [
   {
     id: "select",
@@ -20,33 +22,27 @@ export const getColumns = (
         aria-label="Select all"
       />
     ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(v) => row.toggleSelected(!!v)}
-        aria-label="Select row"
-        className="cursor-pointer"
-      />
-    ),
+    cell: ({ row }) => {
+      const user = row.original;
+      const isSelf = sessionUser && sessionUser.id === user.id;
+      return (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(v) => row.toggleSelected(!!v)}
+          aria-label="Select row"
+          className="cursor-pointer"
+          disabled={isSelf || false}
+        />
+      );
+    },
+
     enableSorting: false,
     enableHiding: false,
   },
-  {
-    accessorKey: "id",
-    header: "ID",
-  },
-  {
-    accessorKey: "full_name",
-    header: "Full Name",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-  },
+  { accessorKey: "id", header: "ID", size: 50 },
+  { accessorKey: "full_name", header: "Full Name" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "role", header: "Role" },
   {
     accessorKey: "is_active",
     header: "Status",
@@ -54,8 +50,10 @@ export const getColumns = (
       const active = row.original.is_active;
       return (
         <span
-          className={`inline-block w-20 text-center px-2 py-1 rounded-full text-xs font-semibold ${
-            active ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"
+          className={`w-[90px] text-center inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+            active
+              ? "bg-primary/15 text-primary"
+              : "bg-muted text-muted-foreground"
           }`}
         >
           {active ? "Active" : "Inactive"}
@@ -64,22 +62,46 @@ export const getColumns = (
     },
   },
   {
+    accessorKey: "is_staff",
+    header: "Staff",
+    cell: ({ row }) => (row.original.is_staff ? "Yes" : "No"),
+  },
+  {
+    accessorKey: "birthday",
+    header: "Birthday",
+    cell: ({ row }) =>
+      row.original.birthday
+        ? dayjs(row.original.birthday).format("DD/MM/YYYY")
+        : "—",
+  },
+  {
+    accessorKey: "gender",
+    header: "Gender",
+    cell: ({ row }) => {
+      const g = row.original.gender;
+      return g === 1 ? "Male" : g === 2 ? "Female" : "—";
+    },
+  },
+  {
+    accessorKey: "date_joined",
+    header: "Joined At",
+    cell: ({ row }) =>
+      dayjs(row.original.date_joined).format("DD/MM/YYYY HH:mm"),
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
       const user = row.original;
-
+      const isSelf = sessionUser && sessionUser.id === user.id;
       return (
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onToggleStatus(user)}
-            className={`min-w-[100px] transition-colors cursor-pointer ${
-              user.is_active
-                ? "text-yellow-600 border-yellow-600 hover:bg-yellow-50"
-                : "text-green-600 border-green-600 hover:bg-green-50"
-            }`}
+            disabled={isSelf || false}
+            className="cursor-pointer w-[100px]"
           >
             {user.is_active ? "Deactivate" : "Activate"}
           </Button>
@@ -88,10 +110,12 @@ export const getColumns = (
             variant="outline"
             size="sm"
             onClick={() => onEdit(user)}
-            className="min-w-[90px] text-blue-600 border-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+            disabled={isSelf || false}
+            className="cursor-pointer"
           >
             Edit
           </Button>
+          <UserDetailDialog user={user} />
         </div>
       );
     },

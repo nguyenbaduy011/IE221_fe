@@ -3,20 +3,26 @@
 "use client";
 
 import * as React from "react";
-import { User } from "@/types/user";
+import { User, UserRole } from "@/types/user";
 import { userApi, CreateUserPayload, UpdateUserPayload } from "@/lib/userApi";
 import { Button } from "@/components/ui/button";
 import { DataTable, FilterState } from "./data-table";
 import { getColumns } from "./columns";
 import {
+  BulkAddUserDialog,
   CreateUserDialog,
   EditUserDialog,
 } from "@/components/AdminUserDialogs";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog";
 
 export default function AdminUserPage() {
   const [users, setUsers] = React.useState<User[]>([]);
   const [loading, setLoading] = React.useState(true);
+
+  const [bulkAddOpen, setBulkAddOpen] = React.useState(false);
+  const [bulkAdding, setBulkAdding] = React.useState(false);
 
   const [filter, setFilter] = React.useState<FilterState>({
     search: "",
@@ -32,6 +38,10 @@ export default function AdminUserPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
   const [updating, setUpdating] = React.useState(false);
+
+  // State cho Dialog xác nhận xoá
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleteIds, setDeleteIds] = React.useState<number[]>([]);
 
   // Fetch data
   const fetchUsers = async () => {
@@ -112,28 +122,47 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý Xóa nhiều
-  const handleBulkDelete = async (ids: number[]) => {
-    if (!confirm(`Are you sure you want to delete ${ids.length} users?`))
-      return;
+ const handleBulkDelete = (ids: number[]) => {
+   setDeleteIds(ids); 
+   setDeleteOpen(true);
+ };
+
+  const handleBulkAdd = async (emails: string[]) => {
+    setBulkAdding(true);
     try {
-      await Promise.all(ids.map((id) => userApi.delete(id)));
-      setUsers((prev) => prev.filter((u) => !ids.includes(u.id)));
+      await userApi.bulkAdd({ emails, role: UserRole.TRAINEE });
+      toast.success(`${emails.length} users added`);
+      fetchUsers();
+      setBulkAddOpen(false);
+    } catch (err) {
+      toast.error("Failed to add users");
+    } finally {
+      setBulkAdding(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await Promise.all(deleteIds.map((id) => userApi.delete(id)));
+      setUsers((prev) => prev.filter((u) => !deleteIds.includes(u.id)));
       toast.success("Users deleted successfully");
     } catch (err) {
       toast.error("Failed to delete users");
     }
   };
 
-  const columns = getColumns(handleToggleStatus, handleEditClick);
+  const { user: sessionUser } = useAuth();
+
+  const columns = getColumns(handleToggleStatus, handleEditClick, sessionUser);
 
   return (
-    <div className="container mx-auto p-6 space-y-4">
+    <div className="container mx-auto px-6 py-10 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">User Management</h1>
-        <Button className="cursor-pointer" onClick={() => setCreateOpen(true)}>
-          + Add User
-        </Button>
+        <div className="flex gap-2">
+          <Button className="cursor-pointer" onClick={() => setCreateOpen(true)}>+ Add User</Button>
+          <Button className="cursor-pointer" onClick={() => setBulkAddOpen(true)}>+ Bulk Add Users</Button>
+        </div>
       </div>
 
       <DataTable
@@ -158,6 +187,20 @@ export default function AdminUserPage() {
         user={editingUser}
         onSubmit={handleUpdateUser}
         loading={updating}
+      />
+
+      <BulkAddUserDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        onSubmit={handleBulkAdd}
+        loading={bulkAdding}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        count={deleteIds.length}
+        onConfirm={confirmDelete}
       />
     </div>
   );

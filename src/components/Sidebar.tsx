@@ -111,7 +111,7 @@ export default function Sidebar({ className }: SidebarProps) {
 
   return (
     <aside
-      className={`w-64 bg-card border-r text-card-foreground p-4 h-[calc(100vh-64px)] fixed left-0 top-0 ${
+      className={`w-64 bg-card border-r text-card-foreground p-4 h-[calc(100vh-64px)] fixed  left-0 top-0 ${
         className || ""
       }`}
     >

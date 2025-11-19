@@ -36,6 +36,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Textarea } from "./ui/textarea";
 
 // --- Dialog Tạo User ---
 interface CreateUserDialogProps {
@@ -193,6 +194,7 @@ export function EditUserDialog({
       role: "TRAINEE",
       birthday: "",
       gender: "unknown",
+      is_staff: false,
     },
   });
 
@@ -210,6 +212,7 @@ export function EditUserDialog({
         role: user.role,
         birthday: user.birthday || "",
         gender: genderStr,
+        is_staff: user.is_staff,
       });
     }
   }, [user, open, form]);
@@ -229,6 +232,7 @@ export function EditUserDialog({
       role: values.role as UserRole,
       birthday: values.birthday || null,
       gender: genderPayload,
+      is_staff: Boolean(values.is_staff),
     });
   };
 
@@ -272,32 +276,57 @@ export function EditUserDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="TRAINEE">TRAINEE</SelectItem>
-                      <SelectItem value="SUPERVISOR">SUPERVISOR</SelectItem>
-                      <SelectItem value="ADMIN">ADMIN</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="TRAINEE">TRAINEE</SelectItem>
+                        <SelectItem value="SUPERVISOR">SUPERVISOR</SelectItem>
+                        <SelectItem value="ADMIN">ADMIN</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="is_staff"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Staff</FormLabel>
+                    <Select
+                      onValueChange={(v) => field.onChange(v === "true")}
+                      value={String(field.value)}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Staff" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="true">Yes</SelectItem>
+                        <SelectItem value="false">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -363,6 +392,63 @@ export function EditUserDialog({
             </DialogFooter>
           </form>
         </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface BulkAddUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (emails: string[]) => void;
+  loading?: boolean;
+}
+
+export function BulkAddUserDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  loading,
+}: BulkAddUserDialogProps) {
+  const [emailsText, setEmailsText] = React.useState("");
+
+  const handleSubmit = () => {
+    const emails = emailsText
+      .split(/\s|,|\n/)
+      .map((e) => e.trim())
+      .filter(Boolean);
+    if (emails.length === 0) return;
+    onSubmit(emails);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Bulk Add Users</DialogTitle>
+        </DialogHeader>
+        <Textarea
+          placeholder="Enter emails, separated by comma, space or new line"
+          value={emailsText}
+          onChange={(e) => setEmailsText(e.target.value)}
+          className="w-full h-40 mb-4"
+        />
+        <div className="flex justify-end gap-2">
+          <Button
+            className="cursor-pointer"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="cursor-pointer"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Adding..." : "Add Users"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

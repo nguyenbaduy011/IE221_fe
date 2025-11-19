@@ -16,7 +16,7 @@ export default function Header() {
   const { logout } = useAuth();
 
   return (
-    <header className="fixed h-12 top-0 left-0 w-full px-6 bg-background border-b flex items-center justify-between z-20 shadow-sm">
+    <header className="fixed h-13 top-0 left-0 w-full px-6 bg-background border-b flex items-center justify-between z-20 shadow-sm">
       <Link href="/" className="text-xl font-bold">
         Training System
       </Link>

@@ -24,6 +24,7 @@ export const updateUserSchema = z.object({
   role: z.enum(["ADMIN", "SUPERVISOR", "TRAINEE"]),
   birthday: z.string().optional().nullable(),
   gender: z.enum(["1", "2", "unknown"]).optional(),
+  is_staff: z.boolean().optional(),
 });
 
 export type UpdateUserFormValues = z.infer<typeof updateUserSchema>;
