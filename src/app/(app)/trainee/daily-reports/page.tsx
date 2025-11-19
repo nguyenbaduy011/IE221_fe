@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import DailyReportItem from "@//app/trainee/daily-reports/_DailyReportItem";
-import DailyReportsFilter from "@//app/trainee/daily-reports/DailyReportsFilter";
+import DailyReportItem from "@/app/(app)/trainee/daily-reports/_DailyReportItem";
+import DailyReportsFilter from "@/app/(app)/trainee/daily-reports/DailyReportsFilter";
 
 export default function DailyReportsPage() {
   const [reports, setReports] = useState<any[]>([]);

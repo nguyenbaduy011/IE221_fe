@@ -66,7 +66,7 @@ export function DataTable({
       {/* TOOLBAR */}
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="Tìm tên hoặc email..."
+          placeholder="Search by name or email..."
           value={filter.search}
           onChange={(e) => setFilter({ ...filter, search: e.target.value })}
           className="max-w-xs"
@@ -76,14 +76,23 @@ export function DataTable({
           value={filter.role}
           onValueChange={(v) => setFilter({ ...filter, role: v })}
         >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Vai trò" />
+          <SelectTrigger className="w-40 cursor-pointer">
+            <SelectValue placeholder="Role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Tất cả</SelectItem>
-            <SelectItem value="ADMIN">ADMIN</SelectItem>
-            <SelectItem value="SUPERVISOR">SUPERVISOR</SelectItem>
-            <SelectItem value="TRAINEE">TRAINEE</SelectItem>
+            <SelectItem value="ALL" className="cursor-pointer">
+              {" "}
+              All Roles
+            </SelectItem>
+            <SelectItem value="ADMIN" className="cursor-pointer">
+              ADMIN
+            </SelectItem>
+            <SelectItem value="SUPERVISOR" className="cursor-pointer">
+              SUPERVISOR
+            </SelectItem>
+            <SelectItem value="TRAINEE" className="cursor-pointer">
+              TRAINEE
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -91,13 +100,19 @@ export function DataTable({
           value={filter.status}
           onValueChange={(v) => setFilter({ ...filter, status: v })}
         >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Trạng thái" />
+          <SelectTrigger className="w-40 cursor-pointer">
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Tất cả</SelectItem>
-            <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-            <SelectItem value="INACTIVE">Không hoạt động</SelectItem>
+            <SelectItem value="ALL" className="cursor-pointer">
+              All Status
+            </SelectItem>
+            <SelectItem value="ACTIVE" className="cursor-pointer">
+              Active
+            </SelectItem>
+            <SelectItem value="INACTIVE" className="cursor-pointer">
+              Inactive
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -105,8 +120,9 @@ export function DataTable({
           <Button
             variant="destructive"
             onClick={() => onBulkDelete(selectedIds)}
+            className="cursor-pointer"
           >
-            Xóa {selectedIds.length} mục
+            Delete {selectedIds.length} selected
           </Button>
         )}
       </div>
@@ -145,7 +161,7 @@ export function DataTable({
                   colSpan={columns.length}
                   className="text-center py-6"
                 >
-                  Không có dữ liệu.
+                  No results.
                 </TableCell>
               </TableRow>
             )}
@@ -155,7 +171,7 @@ export function DataTable({
 
       <div className="flex justify-between items-center pt-2">
         <div className="text-sm text-muted-foreground">
-          Trang {table.getState().pagination.pageIndex + 1} /{" "}
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
         </div>
 
@@ -166,7 +182,7 @@ export function DataTable({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Trước
+            Previous
           </Button>
           <Button
             variant="outline"
@@ -174,7 +190,7 @@ export function DataTable({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Sau
+            Next
           </Button>
         </div>
       </div>

@@ -6,36 +6,54 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@//components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "./ui";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/theme/ThemeToggle";
+import { Separator } from "@/components/ui/separator";
 
 export default function Header() {
   const { logout } = useAuth();
+
   return (
-    <header className="fixed top-0 left-0 w-full bg-black text-white px-6 py-3 flex items-center justify-between z-20 shadow-lg">
+    <header className="fixed h-12 top-0 left-0 w-full px-6 bg-background border-b flex items-center justify-between z-20 shadow-sm">
       <Link href="/" className="text-xl font-bold">
         Training System
       </Link>
 
-      <nav className="flex gap-6 items-center">
+      <div className="hidden sm:flex items-center gap-3 py-2 h-full">
+        <ThemeToggle />
+        <Separator orientation="vertical" className="h-6 bg-border" />
+
         <DropdownMenu>
-          <DropdownMenuTrigger className="cursor-pointer">
+          <DropdownMenuTrigger className="cursor-pointer font-medium px-2 py-1 rounded hover:bg-muted transition">
             Account ▾
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              <Link href="/profile">Profile</Link>
+          <DropdownMenuContent align="end" className="min-w-40">
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/profile" className="px-3 py-2 w-full block">
+                Profile
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href="/settings">Settings</Link>
+
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/settings" className="px-3 py-2 w-full block">
+                Settings
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
-              <Button onClick={() => logout()}>Logout</Button>
+
+            <DropdownMenuItem>
+              <Button
+                variant="destructive"
+                className="w-full px-3 py-2 cursor-pointer"
+                onClick={() => logout()}
+              >
+                Logout
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </nav>
+      </div>
     </header>
   );
 }
