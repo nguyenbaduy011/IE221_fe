@@ -62,9 +62,9 @@ export function DataTable({
     .rows.map((row) => (row.original as User).id);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* TOOLBAR */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 bg-muted/50 p-4 rounded-lg border border-border">
         <Input
           placeholder="Search by name or email..."
           value={filter.search}
@@ -81,7 +81,6 @@ export function DataTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL" className="cursor-pointer">
-              {" "}
               All Roles
             </SelectItem>
             <SelectItem value="ADMIN" className="cursor-pointer">
@@ -120,20 +119,24 @@ export function DataTable({
           <Button
             variant="destructive"
             onClick={() => onBulkDelete(selectedIds)}
-            className="cursor-pointer"
+            className="cursor-pointer ml-auto"
           >
             Delete {selectedIds.length} selected
           </Button>
         )}
       </div>
 
-      <div className="rounded-md border">
+      {/* TABLE */}
+      <div className="rounded-lg border border-border overflow-hidden shadow-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted border-b border-border">
             {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
+              <TableRow key={hg.id} className="hover:bg-muted">
                 {hg.headers.map((h) => (
-                  <TableHead key={h.id}>
+                  <TableHead
+                    key={h.id}
+                    className="font-semibold text-foreground"
+                  >
                     {flexRender(h.column.columnDef.header, h.getContext())}
                   </TableHead>
                 ))}
@@ -144,9 +147,12 @@ export function DataTable({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className="hover:bg-muted/50 transition-colors"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-foreground">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -159,9 +165,9 @@ export function DataTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="text-center py-6"
+                  className="text-center py-8 text-muted-foreground"
                 >
-                  No results.
+                  No users found.
                 </TableCell>
               </TableRow>
             )}
@@ -169,18 +175,20 @@ export function DataTable({
         </Table>
       </div>
 
-      <div className="flex justify-between items-center pt-2">
+      {/* PAGINATION */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
         <div className="text-sm text-muted-foreground">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
+          {table.getPageCount() || 1}
         </div>
 
-        <div className="space-x-2">
+        <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            className="cursor-pointer"
           >
             Previous
           </Button>
@@ -189,6 +197,7 @@ export function DataTable({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            className="cursor-pointer"
           >
             Next
           </Button>

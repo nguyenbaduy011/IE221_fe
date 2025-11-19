@@ -22,6 +22,7 @@ export interface UpdateUserPayload {
   role?: UserRole;
   birthday?: string | null;
   gender?: number | null;
+  is_staff?: boolean;
 }
 
 // Kiểu dữ liệu cho bộ lọc
@@ -48,7 +49,6 @@ export const userApi = {
   },
 
   update(id: number, data: UpdateUserPayload) {
-    // Dùng PATCH hoặc PUT tùy backend, thường update 1 phần dùng PATCH
     return axiosClient.patch<ApiResponse<User>>(
       `/api/admin/users/${id}/`,
       data
@@ -68,6 +68,21 @@ export const userApi = {
   activate(id: number) {
     return axiosClient.post<ApiResponse<null>>(
       `/api/admin/users/${id}/activate/`
+    );
+  },
+
+  // --- Bulk actions ---
+  bulkAdd(data: { emails: string[]; role?: UserRole }) {
+    return axiosClient.post<ApiResponse<User[]>>(
+      "/api/admin/users/bulk_add/",
+      data
+    );
+  },
+
+  bulkDelete(ids: number[]) {
+    return axiosClient.post<ApiResponse<null>>(
+      "/api/admin/users/bulk_delete/",
+      { ids }
     );
   },
 };
