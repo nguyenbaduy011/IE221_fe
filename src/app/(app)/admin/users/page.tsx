@@ -7,7 +7,7 @@ import { User, UserRole } from "@/types/user";
 import { userApi, CreateUserPayload, UpdateUserPayload } from "@/lib/userApi";
 import { Button } from "@/components/ui/button";
 import { DataTable, FilterState } from "./data-table";
-import { getColumns } from "./columns";
+import { getColumns } from "./columns"; // File này giữ nguyên từ code cũ của bạn
 import {
   BulkAddUserDialog,
   CreateUserDialog,
@@ -15,7 +15,8 @@ import {
 } from "@/components/AdminUserDialogs";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog";
+
+// Đã xóa DeleteConfirmDialog vì Backend không cho phép xóa
 
 export default function AdminUserPage() {
   const [users, setUsers] = React.useState<User[]>([]);
@@ -38,10 +39,6 @@ export default function AdminUserPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
   const [updating, setUpdating] = React.useState(false);
-
-  // State cho Dialog xác nhận xoá
-  const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [deleteIds, setDeleteIds] = React.useState<number[]>([]);
 
   // Fetch data
   const fetchUsers = async () => {
@@ -69,7 +66,7 @@ export default function AdminUserPage() {
     return () => clearTimeout(timer);
   }, [filter]);
 
-  // Xử lý Tạo mới (Nhận data từ Dialog)
+  // Xử lý Tạo mới
   const handleCreateUser = async (data: CreateUserPayload) => {
     setCreating(true);
     try {
@@ -84,13 +81,13 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý click nút Sửa (Mở dialog)
+  // Mở Dialog sửa
   const handleEditClick = (user: User) => {
     setEditingUser(user);
     setEditOpen(true);
   };
 
-  // Xử lý Cập nhật (Nhận data từ Dialog)
+  // Xử lý Cập nhật
   const handleUpdateUser = async (id: number, data: UpdateUserPayload) => {
     setUpdating(true);
     try {
@@ -106,7 +103,7 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý Khóa/Mở khóa
+  // Xử lý Khóa/Mở khóa (Single)
   const handleToggleStatus = async (user: User) => {
     try {
       if (user.is_active) {
@@ -122,11 +119,7 @@ export default function AdminUserPage() {
     }
   };
 
-  const handleBulkDelete = (ids: number[]) => {
-    setDeleteIds(ids);
-    setDeleteOpen(true);
-  };
-
+  // Xử lý Bulk Add
   const handleBulkAdd = async (emails: string[]) => {
     setBulkAdding(true);
     try {
@@ -141,24 +134,41 @@ export default function AdminUserPage() {
     }
   };
 
-  const confirmDelete = async () => {
+  // Xử lý Bulk Deactivate (Thay thế Delete)
+  const handleBulkDeactivate = async (ids: number[]) => {
+    if (!confirm(`Are you sure you want to deactivate ${ids.length} users?`))
+      return;
     try {
-      await Promise.all(deleteIds.map((id) => userApi.delete(id)));
-      setUsers((prev) => prev.filter((u) => !deleteIds.includes(u.id)));
-      toast.success("Users deleted successfully");
+      await userApi.bulkDeactivate(ids);
+      toast.success(`Deactivated ${ids.length} users successfully`);
+      fetchUsers();
     } catch (err) {
-      toast.error("Failed to delete users");
+      toast.error("Failed to deactivate users");
+    }
+  };
+
+  // Xử lý Bulk Activate
+  const handleBulkActivate = async (ids: number[]) => {
+    if (!confirm(`Are you sure you want to activate ${ids.length} users?`))
+      return;
+    try {
+      await userApi.bulkActivate(ids);
+      toast.success(`Activated ${ids.length} users successfully`);
+      fetchUsers();
+    } catch (err) {
+      toast.error("Failed to activate users");
     }
   };
 
   const { user: sessionUser } = useAuth();
 
+  // Hàm getColumns vẫn lấy từ file columns cũ (có nút Edit)
   const columns = getColumns(handleToggleStatus, handleEditClick, sessionUser);
 
   return (
     <div className="container mx-auto px-6 py-10 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-2xl font-bold">User Management (Admin)</h1>
         <div className="flex gap-2">
           <Button
             className="cursor-pointer"
@@ -185,12 +195,13 @@ export default function AdminUserPage() {
           data={users}
           filter={filter}
           setFilter={setFilter}
-          onBulkDelete={handleBulkDelete}
           loading={loading}
+          // Truyền 2 hàm mới thay vì onBulkDelete
+          onBulkDeactivate={handleBulkDeactivate}
+          onBulkActivate={handleBulkActivate}
         />
       )}
 
-      {/* Dialogs đã được tách ra */}
       <CreateUserDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
@@ -211,13 +222,6 @@ export default function AdminUserPage() {
         onOpenChange={setBulkAddOpen}
         onSubmit={handleBulkAdd}
         loading={bulkAdding}
-      />
-
-      <DeleteConfirmDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        count={deleteIds.length}
-        onConfirm={confirmDelete}
       />
     </div>
   );

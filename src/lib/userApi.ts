@@ -2,8 +2,7 @@
 import axiosClient from "./axiosClient";
 import { User, UserRole } from "@/types/user";
 
-// Định nghĩa kiểu dữ liệu trả về từ API
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   status: string;
   message: string;
   data: T;
@@ -25,7 +24,6 @@ export interface UpdateUserPayload {
   is_staff?: boolean;
 }
 
-// Kiểu dữ liệu cho bộ lọc
 export interface UserQueryParams {
   search?: string;
   role?: string;
@@ -33,7 +31,6 @@ export interface UserQueryParams {
 }
 
 export const userApi = {
-  // SỬA Ở ĐÂY: Thêm params vào hàm getAll
   getAll(params?: UserQueryParams) {
     return axiosClient.get<ApiResponse<User[]>>("/api/admin/users/", {
       params,
@@ -55,9 +52,7 @@ export const userApi = {
     );
   },
 
-  delete(id: number) {
-    return axiosClient.delete<ApiResponse<null>>(`/api/admin/users/${id}/`);
-  },
+  // --- XÓA HÀM DELETE ĐƠN LẺ VÀ BULK DELETE CŨ ---
 
   deactivate(id: number) {
     return axiosClient.post<ApiResponse<null>>(
@@ -71,7 +66,7 @@ export const userApi = {
     );
   },
 
-  // --- Bulk actions ---
+  // --- Bulk actions MỚI ---
   bulkAdd(data: { emails: string[]; role?: UserRole }) {
     return axiosClient.post<ApiResponse<User[]>>(
       "/api/admin/users/bulk_add/",
@@ -79,9 +74,16 @@ export const userApi = {
     );
   },
 
-  bulkDelete(ids: number[]) {
+  bulkActivate(ids: number[]) {
     return axiosClient.post<ApiResponse<null>>(
-      "/api/admin/users/bulk_delete/",
+      "/api/admin/users/bulk_activate/",
+      { ids }
+    );
+  },
+
+  bulkDeactivate(ids: number[]) {
+    return axiosClient.post<ApiResponse<null>>(
+      "/api/admin/users/bulk_deactivate/",
       { ids }
     );
   },

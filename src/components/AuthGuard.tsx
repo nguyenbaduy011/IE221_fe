@@ -34,6 +34,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           ? "/supervisor/dashboard"
           : user?.role === "TRAINEE"
             ? "/trainee/courses"
+            : user?.role === "ADMIN"
+              ? "/admin/dashboard"
             : "/"; // Trang chủ mặc định
       router.push(redirectTo);
       return;
