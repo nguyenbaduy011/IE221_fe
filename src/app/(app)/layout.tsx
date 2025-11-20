@@ -19,7 +19,7 @@ export default function TraineeLayout({
 
       <div className="flex">
         {shouldShow && <Sidebar className="fixed top-13 left-0" />}
-        <main className={`${shouldShow ? "ml-64 pt-10" : ""} flex-1 p-6`}>
+        <main className={`${shouldShow ? "ml-64 pt-13" : ""} flex-1 p-6`}>
           {children}
         </main>
       </div>

@@ -16,6 +16,7 @@ import Link from "next/link";
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
+  const { user } = useAuth();
 
   const {
     register,
@@ -41,7 +42,15 @@ export default function LoginPage() {
       if (res.status === 200 && res.data?.data?.access) {
         auth.login(res.data);
         toast.success("Đăng nhập thành công!");
-        router.push("/");
+        if (user?.role === "ADMIN") {
+          router.push("/admin/dashboard");
+        }
+        if (user?.role === "SUPERVISOR") {
+          router.push("/supervisor/dashboard");
+        }
+        if (user?.role === "TRAINEE") {
+          router.push("/trainee/dashboard");
+        }
       } else {
         throw new Error("Dữ liệu trả về không hợp lệ");
       }
@@ -132,7 +141,11 @@ export default function LoginPage() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
 

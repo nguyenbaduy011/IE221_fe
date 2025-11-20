@@ -7,9 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import dayjs from "dayjs";
 import { UserDetailDialog } from "@/components/UserDetailDialog";
 
-export const getColumns = (
+export const getSupervisorColumns = (
   onToggleStatus: (user: User) => void,
-  onEdit: (user: User) => void,
   sessionUser: User | null
 ): ColumnDef<User>[] => [
   {
@@ -35,7 +34,6 @@ export const getColumns = (
         />
       );
     },
-
     enableSorting: false,
     enableHiding: false,
   },
@@ -67,22 +65,6 @@ export const getColumns = (
     cell: ({ row }) => (row.original.is_staff ? "Yes" : "No"),
   },
   {
-    accessorKey: "birthday",
-    header: "Birthday",
-    cell: ({ row }) =>
-      row.original.birthday
-        ? dayjs(row.original.birthday).format("DD/MM/YYYY")
-        : "—",
-  },
-  {
-    accessorKey: "gender",
-    header: "Gender",
-    cell: ({ row }) => {
-      const g = row.original.gender;
-      return g === 1 ? "Male" : g === 2 ? "Female" : "—";
-    },
-  },
-  {
     accessorKey: "date_joined",
     header: "Joined At",
     cell: ({ row }) =>
@@ -94,6 +76,7 @@ export const getColumns = (
     cell: ({ row }) => {
       const user = row.original;
       const isSelf = sessionUser && sessionUser.id === user.id;
+
       return (
         <div className="flex flex-wrap gap-2">
           <Button
@@ -110,15 +93,6 @@ export const getColumns = (
             {user.is_active ? "Deactivate" : "Activate"}
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(user)}
-            disabled={isSelf || false}
-            className="cursor-pointer"
-          >
-            Edit
-          </Button>
           <UserDetailDialog user={user} />
         </div>
       );

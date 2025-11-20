@@ -29,32 +29,33 @@ import {
 
 import { User } from "@/types/user";
 
-export type FilterState = {
+// Định nghĩa lại FilterState cho Supervisor (không cần quá phức tạp nhưng giữ cấu trúc cũ để tái sử dụng)
+export type SupervisorFilterState = {
   search: string;
   role: string;
   status: string;
 };
 
-export interface DataTableProps {
+interface SupervisorDataTableProps {
   columns: ColumnDef<User>[];
   data: User[];
-  // Admin thay đổi từ Delete sang Deactivate/Activate
+  filter: SupervisorFilterState;
+  setFilter: (f: SupervisorFilterState) => void;
+  loading: boolean;
+  // Thay thế onBulkDelete bằng 2 hàm mới
   onBulkDeactivate: (ids: number[]) => void;
   onBulkActivate: (ids: number[]) => void;
-  filter: FilterState;
-  setFilter: (f: FilterState) => void;
-  loading: boolean;
 }
 
-export function DataTable({
+export function SupervisorDataTable({
   columns,
   data,
-  onBulkDeactivate,
-  onBulkActivate,
   filter,
   setFilter,
   loading,
-}: DataTableProps) {
+  onBulkDeactivate,
+  onBulkActivate,
+}: SupervisorDataTableProps) {
   const table = useReactTable<User>({
     data,
     columns,
@@ -62,16 +63,17 @@ export function DataTable({
     getPaginationRowModel: getPaginationRowModel(),
   });
 
+  // Lấy danh sách các rows đang được chọn
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedUsers = selectedRows.map((row) => row.original as User);
   const selectedIds = selectedUsers.map((u) => u.id);
 
-  // LOGIC HIỂN THỊ NÚT BULK (Giống Supervisor)
-  // 1. Hiện nút Deactivate khi: Có chọn user VÀ tất cả đang Active
+  // LOGIC HIỂN THỊ NÚT BULK
+  // 1. Chỉ hiện nút Deactivate khi: Có chọn user VÀ tất cả user được chọn đều đang Active
   const showBulkDeactivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => u.is_active);
 
-  // 2. Hiện nút Activate khi: Có chọn user VÀ tất cả đang Inactive
+  // 2. Chỉ hiện nút Activate khi: Có chọn user VÀ tất cả user được chọn đều đang Inactive
   const showBulkActivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => !u.is_active);
 
@@ -97,9 +99,7 @@ export function DataTable({
             <SelectItem value="ALL" className="cursor-pointer">
               All Roles
             </SelectItem>
-            <SelectItem value="ADMIN" className="cursor-pointer">
-              ADMIN
-            </SelectItem>
+            {/* Supervisor không được lọc Admin nên có thể ẩn hoặc để backend xử lý (ở đây backend đã chặn) */}
             <SelectItem value="SUPERVISOR" className="cursor-pointer">
               SUPERVISOR
             </SelectItem>
@@ -144,7 +144,7 @@ export function DataTable({
           Reset
         </Button>
 
-        {/* ACTION BUTTONS */}
+        {/* ACTION BUTTONS (CONDITIONAL RENDERING) */}
         {showBulkDeactivate && (
           <Button
             variant="destructive"
@@ -157,7 +157,7 @@ export function DataTable({
 
         {showBulkActivate && (
           <Button
-            variant="default"
+            variant="default" // Dùng màu xanh/chính
             onClick={() => onBulkActivate(selectedIds)}
             className="cursor-pointer ml-auto bg-green-600 hover:bg-green-700"
           >

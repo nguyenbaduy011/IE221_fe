@@ -11,7 +11,7 @@ import { toast } from "sonner";
 export default function VerifyEmailPage() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(300);
+  const [countdown, setCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function VerifyEmailPage() {
           <Button
             onClick={handleResendEmail}
             disabled={isResending || countdown > 0}
-            className="w-full min-h-10"
+            className="w-full min-h-10 cursor-pointer"
           >
             {isResending ? (
               <>
