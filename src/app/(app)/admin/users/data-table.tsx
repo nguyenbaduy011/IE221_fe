@@ -41,6 +41,7 @@ export interface DataTableProps {
   onBulkDelete: (ids: number[]) => void;
   filter: FilterState;
   setFilter: (f: FilterState) => void;
+  loading: boolean;
 }
 
 export function DataTable({
@@ -49,6 +50,7 @@ export function DataTable({
   onBulkDelete,
   filter,
   setFilter,
+  loading,
 }: DataTableProps) {
   const table = useReactTable<User>({
     data,
@@ -115,6 +117,19 @@ export function DataTable({
           </SelectContent>
         </Select>
 
+        <Button
+          onClick={() => {
+            setFilter({
+              search: "",
+              role: "ALL",
+              status: "ALL",
+            });
+          }}
+          className="cursor-pointer"
+        >
+          <div>Reset</div>
+        </Button>
+
         {selectedIds.length > 0 && (
           <Button
             variant="destructive"
@@ -145,14 +160,25 @@ export function DataTable({
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-10 text-center"
+                >
+                  <div className="flex justify-center">
+                    <div className="animate-spin h-8 w-8 rounded-full border-4 border-primary border-t-transparent"></div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   className="hover:bg-muted/50 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-foreground">
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

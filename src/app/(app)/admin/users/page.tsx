@@ -122,10 +122,10 @@ export default function AdminUserPage() {
     }
   };
 
- const handleBulkDelete = (ids: number[]) => {
-   setDeleteIds(ids); 
-   setDeleteOpen(true);
- };
+  const handleBulkDelete = (ids: number[]) => {
+    setDeleteIds(ids);
+    setDeleteOpen(true);
+  };
 
   const handleBulkAdd = async (emails: string[]) => {
     setBulkAdding(true);
@@ -160,18 +160,35 @@ export default function AdminUserPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">User Management</h1>
         <div className="flex gap-2">
-          <Button className="cursor-pointer" onClick={() => setCreateOpen(true)}>+ Add User</Button>
-          <Button className="cursor-pointer" onClick={() => setBulkAddOpen(true)}>+ Bulk Add Users</Button>
+          <Button
+            className="cursor-pointer"
+            onClick={() => setCreateOpen(true)}
+          >
+            + Add User
+          </Button>
+          <Button
+            className="cursor-pointer"
+            onClick={() => setBulkAddOpen(true)}
+          >
+            + Bulk Add Users
+          </Button>
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={users}
-        filter={filter}
-        setFilter={setFilter}
-        onBulkDelete={handleBulkDelete}
-      />
+      {loading ? (
+        <div className="w-full flex justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"></div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={users}
+          filter={filter}
+          setFilter={setFilter}
+          onBulkDelete={handleBulkDelete}
+          loading={loading}
+        />
+      )}
 
       {/* Dialogs đã được tách ra */}
       <CreateUserDialog
