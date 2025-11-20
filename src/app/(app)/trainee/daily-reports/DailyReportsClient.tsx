@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -30,11 +29,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function DailyReportsClient() {
   const [reports, setReports] = useState<DailyReport[]>([]);
-  const [availableCourses, setAvailableCourses] = useState<Course[]>([
-    { id: 1, name: "Course A" },
-    { id: 2, name: "Course B" },
-    { id: 3, name: "Course C" },
-  ]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -42,6 +37,19 @@ export default function DailyReportsClient() {
     courseId: null,
     date: "",
   });
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await axiosClient.get("api/trainee/courses/");
+        setAvailableCourses(res.data.data || res.data);
+      } catch (error) {
+        console.error("Fetch courses error:", error);
+        toast.error("Failed to load courses list.");
+      }
+    };
+    fetchCourses();
+  }, []);
 
   const mapApiToDailyReport = (r: DailyReportApi): DailyReport => ({
     ...r,

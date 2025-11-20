@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import DailyReportForm, { DailyReportFormData } from "./DailyReportForm";
+import DailyReportForm, { DailyReportFormData } from "../DailyReportForm";
 import axiosClient from "@/lib/axiosClient";
 import { Course } from "@/types/course";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { AxiosError } from "axios";
 
-export default function NewDailyReportPage() {
+export default function NewDailyReportClient() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -26,11 +27,16 @@ export default function NewDailyReportPage() {
     fetchCourses();
   }, []);
 
+  interface ErrorResponseData {
+    course?: string[];
+    detail?: string;
+  }
+
   const handleSubmit = async (data: DailyReportFormData) => {
     setLoading(true);
     try {
       await axiosClient.post("api/trainee/daily_reports/", {
-        course_id: data.courseId,
+        course: data.courseId,
         content: data.content,
         status: data.status,
       });
@@ -41,8 +47,18 @@ export default function NewDailyReportPage() {
           : "Draft saved successfully"
       );
       router.push("/trainee/daily-reports");
-    } catch {
-      toast.error("Failed to create report");
+    } catch (error) {
+      let errorMsg = "Failed to create report";
+
+      if (error instanceof AxiosError) {
+        const responseData = error.response?.data as ErrorResponseData;
+
+
+        errorMsg =
+          responseData?.course?.[0] || responseData?.detail || errorMsg;
+      }
+
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
