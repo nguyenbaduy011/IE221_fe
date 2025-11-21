@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import DailyReportsFilter from "./DailyReportsFilter";
-import DailyReportsList from "./DailyReportsList";
+import SupervisorDailyReportsFilter from "./SupervisorDailyReportsFilter";
+import SupervisorDailyReportsList from "./SupervisorDailyReportsLists";
 import { DailyReport } from "@/types/dailyReport";
 import { Course } from "@/types/course";
 import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
+import { Users } from "lucide-react";
+
+export interface FilterState {
+  courseId: number | null;
+  date: string;
+}
 
 interface DailyReportApi {
   id: number;
@@ -20,16 +26,11 @@ interface DailyReportApi {
   updated_at: string;
 }
 
-export interface FilterState {
-  courseId: number | null;
-  date: string;
-}
-
 const ITEMS_PER_PAGE = 5;
 
-export default function DailyReportsClient() {
+export default function SupervisorDailyReportsClient() {
   const [reports, setReports] = useState<DailyReport[]>([]);
-  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -41,11 +42,10 @@ export default function DailyReportsClient() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await axiosClient.get("api/trainee/courses/");
-        setAvailableCourses(res.data.data || res.data);
-      } catch (error) {
-        console.error("Fetch courses error:", error);
-        toast.error("Failed to load courses list.");
+        const res = await axiosClient.get("api/supervisor/courses/my-courses");
+        setCourses(res.data.data || res.data);
+      } catch {
+        toast.error("Failed to load supervised courses");
       }
     };
     fetchCourses();
@@ -67,7 +67,7 @@ export default function DailyReportsClient() {
       if (filter.date) query.append("filter_date", filter.date);
 
       const res = await axiosClient.get(
-        `api/trainee/daily_reports/?${query.toString()}`
+        `api/supervisor/daily_reports/?${query.toString()}`
       );
 
       const list = (
@@ -75,8 +75,7 @@ export default function DailyReportsClient() {
       ).map(mapApiToDailyReport);
 
       setReports(list);
-    } catch (error) {
-      console.error("Fetch reports error:", error);
+    } catch {
       toast.error("Failed to fetch daily reports.");
       setReports([]);
     } finally {
@@ -94,7 +93,6 @@ export default function DailyReportsClient() {
 
   const totalItems = reports.length;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedReports = reports.slice(startIndex, endIndex);
@@ -117,24 +115,26 @@ export default function DailyReportsClient() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">
-        Daily Reports Management
-      </h1>
+      <div className="flex items-center gap-3 border-b pb-4 dark:border-gray-700">
+        <Users className="w-8 h-8 text-blue-600" />
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+          Trainee Daily Reports
+        </h1>
+      </div>
 
-      <DailyReportsFilter
-        courses={availableCourses}
+      <SupervisorDailyReportsFilter
+        courses={courses}
         currentFilter={filter}
         onFilterChange={handleFilterChange}
       />
 
-      <DailyReportsList
+      <SupervisorDailyReportsList
         reports={paginatedReports}
         loading={loading}
         currentPage={currentPage}
         totalPages={totalPages}
         onPreviousPage={handlePreviousPage}
         onNextPage={handleNextPage}
-        onRefresh={fetchReports}
       />
     </div>
   );

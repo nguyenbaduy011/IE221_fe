@@ -1,6 +1,6 @@
 "use client";
 
-import DailyReportItem from "@/app/(app)/trainee/daily-reports/_DailyReportItem";
+import SupervisorDailyReportItem from "./SupervisorDailyReportItem";
 import { DailyReport } from "@/types/dailyReport";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -12,17 +12,15 @@ type Props = {
   totalPages: number;
   onPreviousPage: () => void;
   onNextPage: () => void;
-  onRefresh: () => void;
 };
 
-export default function DailyReportsList({
+export default function SupervisorDailyReportsList({
   reports,
   loading,
   currentPage,
   totalPages,
   onPreviousPage,
   onNextPage,
-  onRefresh,
 }: Props) {
   if (loading) {
     return (
@@ -56,7 +54,7 @@ export default function DailyReportsList({
           No Daily Reports Found
         </h3>
         <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
-          Try adjusting your filters or create a new report to get started.
+          No trainee reports match your current filter.
         </p>
       </div>
     );
@@ -64,9 +62,9 @@ export default function DailyReportsList({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
         {reports.map((r) => (
-          <DailyReportItem key={r.id} dailyReport={r} onRefresh={onRefresh} />
+          <SupervisorDailyReportItem key={r.id} dailyReport={r} />
         ))}
       </div>
 

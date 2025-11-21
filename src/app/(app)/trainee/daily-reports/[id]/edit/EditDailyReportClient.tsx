@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import DailyReportForm, { DailyReportFormData } from "../DailyReportForm";
+import DailyReportForm, { DailyReportFormData } from "../../DailyReportForm";
 import axiosClient from "@/lib/axiosClient";
 import { Course } from "@/types/course";
 import { DailyReport, DailyReportStatus } from "@/types/dailyReport";
@@ -10,11 +10,16 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default function EditDailyReportPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+interface ApiError {
+  response?: {
+    data?: {
+      course?: string[];
+      detail?: string;
+    };
+  };
+}
+
+export default function EditDailyReportClient({ id }: { id: string }) {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +30,7 @@ export default function EditDailyReportPage({
     const fetchData = async () => {
       try {
         const [reportRes, courseRes] = await Promise.all([
-          axiosClient.get(`api/trainee/daily_reports/${params.id}/`),
+          axiosClient.get(`api/trainee/daily_reports/${id}/`),
           axiosClient.get("api/trainee/courses/"),
         ]);
 
@@ -53,21 +58,26 @@ export default function EditDailyReportPage({
       }
     };
     fetchData();
-  }, [params.id, router]);
+  }, [id, router]);
 
   const handleSubmit = async (data: DailyReportFormData) => {
     setSaving(true);
     try {
-      await axiosClient.put(`api/trainee/daily_reports/${params.id}/`, {
-        course_id: data.courseId,
+      await axiosClient.put(`api/trainee/daily_reports/${id}/`, {
+        course: data.courseId,
         content: data.content,
         status: data.status,
       });
 
       toast.success("Report updated successfully");
       router.push("/trainee/daily-reports");
-    } catch {
-      toast.error("Failed to update report");
+    } catch (err) {
+      const error = err as ApiError;
+      const errorMsg =
+        error.response?.data?.course?.[0] ||
+        error.response?.data?.detail ||
+        "Failed to update report";
+      toast.error(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -91,7 +101,7 @@ export default function EditDailyReportPage({
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Edit Daily Report #{params.id}
+          Edit Daily Report #{id}
         </h1>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import DailyReportItem from "@/app/(app)/trainee/daily-reports/_DailyReportItem";
+import AdminDailyReportItem from "./AdminDailyReportItem";
 import { DailyReport } from "@/types/dailyReport";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -12,21 +12,19 @@ type Props = {
   totalPages: number;
   onPreviousPage: () => void;
   onNextPage: () => void;
-  onRefresh: () => void;
 };
 
-export default function DailyReportsList({
+export default function AdminDailyReportsList({
   reports,
   loading,
   currentPage,
   totalPages,
   onPreviousPage,
   onNextPage,
-  onRefresh,
 }: Props) {
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-60 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+      <div className="flex justify-center items-center h-40 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
         <p className="ml-4 text-xl font-medium text-blue-600">
           Loading reports...
@@ -56,7 +54,7 @@ export default function DailyReportsList({
           No Daily Reports Found
         </h3>
         <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
-          Try adjusting your filters or create a new report to get started.
+          No trainee reports match your current filter.
         </p>
       </div>
     );
@@ -66,7 +64,7 @@ export default function DailyReportsList({
     <div className="space-y-4">
       <div className="space-y-4">
         {reports.map((r) => (
-          <DailyReportItem key={r.id} dailyReport={r} onRefresh={onRefresh} />
+          <AdminDailyReportItem key={r.id} dailyReport={r} />
         ))}
       </div>
 
