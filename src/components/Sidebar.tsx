@@ -80,7 +80,7 @@ export default function Sidebar({ className }: SidebarProps) {
           icon: <Inbox size={20} />,
         },
         {
-          href: "/supervisor/subjects",
+          href: "/supervisor/master-data",
           label: "Master Data",
           icon: <Database size={20} />,
         },
