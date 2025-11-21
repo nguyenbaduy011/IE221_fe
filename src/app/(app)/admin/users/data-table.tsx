@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 
 import { User } from "@/types/user";
+import { BulkActionConfirmDialog } from "@/components/BulkActionConfirmDialog"; // import dialog mới
 
 export type FilterState = {
   search: string;
@@ -38,7 +39,6 @@ export type FilterState = {
 export interface DataTableProps {
   columns: ColumnDef<User>[];
   data: User[];
-  // Admin thay đổi từ Delete sang Deactivate/Activate
   onBulkDeactivate: (ids: number[]) => void;
   onBulkActivate: (ids: number[]) => void;
   filter: FilterState;
@@ -66,14 +66,29 @@ export function DataTable({
   const selectedUsers = selectedRows.map((row) => row.original as User);
   const selectedIds = selectedUsers.map((u) => u.id);
 
-  // LOGIC HIỂN THỊ NÚT BULK (Giống Supervisor)
-  // 1. Hiện nút Deactivate khi: Có chọn user VÀ tất cả đang Active
   const showBulkDeactivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => u.is_active);
-
-  // 2. Hiện nút Activate khi: Có chọn user VÀ tất cả đang Inactive
   const showBulkActivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => !u.is_active);
+
+  // STATE DIALOG
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogAction, setDialogAction] = React.useState<
+    "activate" | "deactivate"
+  >("activate");
+
+  const handleBulkClick = (action: "activate" | "deactivate") => {
+    setDialogAction(action);
+    setDialogOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (dialogAction === "activate") {
+      onBulkActivate(selectedIds);
+    } else {
+      onBulkDeactivate(selectedIds);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -132,11 +147,7 @@ export function DataTable({
         <Button
           variant="ghost"
           onClick={() => {
-            setFilter({
-              search: "",
-              role: "ALL",
-              status: "ALL",
-            });
+            setFilter({ search: "", role: "ALL", status: "ALL" });
             table.resetRowSelection();
           }}
           className="cursor-pointer"
@@ -148,7 +159,7 @@ export function DataTable({
         {showBulkDeactivate && (
           <Button
             variant="destructive"
-            onClick={() => onBulkDeactivate(selectedIds)}
+            onClick={() => handleBulkClick("deactivate")}
             className="cursor-pointer ml-auto"
           >
             Deactivate {selectedIds.length} selected
@@ -158,7 +169,7 @@ export function DataTable({
         {showBulkActivate && (
           <Button
             variant="default"
-            onClick={() => onBulkActivate(selectedIds)}
+            onClick={() => handleBulkClick("activate")}
             className="cursor-pointer ml-auto bg-green-600 hover:bg-green-700"
           >
             Activate {selectedIds.length} selected
@@ -254,6 +265,15 @@ export function DataTable({
           </Button>
         </div>
       </div>
+
+      {/* BULK CONFIRM DIALOG */}
+      <BulkActionConfirmDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        count={selectedIds.length}
+        action={dialogAction}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }
