@@ -41,7 +41,7 @@ export default function LoginPage() {
 
       if (res.status === 200 && res.data?.data?.access) {
         auth.login(res.data);
-        toast.success("Đăng nhập thành công!");
+        toast.success("Login successfully!");
         if (user?.role === "ADMIN") {
           router.push("/admin/dashboard");
         }

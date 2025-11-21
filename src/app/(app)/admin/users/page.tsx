@@ -136,8 +136,6 @@ export default function AdminUserPage() {
 
   // Xử lý Bulk Deactivate (Thay thế Delete)
   const handleBulkDeactivate = async (ids: number[]) => {
-    if (!confirm(`Are you sure you want to deactivate ${ids.length} users?`))
-      return;
     try {
       await userApi.bulkDeactivate(ids);
       toast.success(`Deactivated ${ids.length} users successfully`);
@@ -149,8 +147,6 @@ export default function AdminUserPage() {
 
   // Xử lý Bulk Activate
   const handleBulkActivate = async (ids: number[]) => {
-    if (!confirm(`Are you sure you want to activate ${ids.length} users?`))
-      return;
     try {
       await userApi.bulkActivate(ids);
       toast.success(`Activated ${ids.length} users successfully`);

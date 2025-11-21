@@ -70,8 +70,6 @@ export default function SupervisorUserPage() {
 
   // Xử lý Bulk Deactivate
   const handleBulkDeactivate = async (ids: number[]) => {
-    if (!confirm(`Are you sure you want to deactivate ${ids.length} users?`))
-      return;
     try {
       // Giả sử API nhận payload { ids: number[] }
       await userApi.bulkDeactivate(ids);
@@ -84,8 +82,6 @@ export default function SupervisorUserPage() {
 
   // Xử lý Bulk Activate
   const handleBulkActivate = async (ids: number[]) => {
-    if (!confirm(`Are you sure you want to activate ${ids.length} users?`))
-      return;
     try {
       // Giả sử API nhận payload { ids: number[] }
       await userApi.bulkActivate(ids);

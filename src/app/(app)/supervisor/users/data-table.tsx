@@ -28,8 +28,8 @@ import {
 } from "@/components/ui/select";
 
 import { User } from "@/types/user";
+import { BulkActionConfirmDialog } from "@/components/BulkActionConfirmDialog"; // import dialog mới
 
-// Định nghĩa lại FilterState cho Supervisor (không cần quá phức tạp nhưng giữ cấu trúc cũ để tái sử dụng)
 export type SupervisorFilterState = {
   search: string;
   role: string;
@@ -42,7 +42,6 @@ interface SupervisorDataTableProps {
   filter: SupervisorFilterState;
   setFilter: (f: SupervisorFilterState) => void;
   loading: boolean;
-  // Thay thế onBulkDelete bằng 2 hàm mới
   onBulkDeactivate: (ids: number[]) => void;
   onBulkActivate: (ids: number[]) => void;
 }
@@ -63,19 +62,33 @@ export function SupervisorDataTable({
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // Lấy danh sách các rows đang được chọn
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedUsers = selectedRows.map((row) => row.original as User);
   const selectedIds = selectedUsers.map((u) => u.id);
 
-  // LOGIC HIỂN THỊ NÚT BULK
-  // 1. Chỉ hiện nút Deactivate khi: Có chọn user VÀ tất cả user được chọn đều đang Active
   const showBulkDeactivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => u.is_active);
-
-  // 2. Chỉ hiện nút Activate khi: Có chọn user VÀ tất cả user được chọn đều đang Inactive
   const showBulkActivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => !u.is_active);
+
+  // State để mở dialog
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogAction, setDialogAction] = React.useState<
+    "activate" | "deactivate"
+  >("activate");
+
+  const handleBulkClick = (action: "activate" | "deactivate") => {
+    setDialogAction(action);
+    setDialogOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (dialogAction === "activate") {
+      onBulkActivate(selectedIds);
+    } else {
+      onBulkDeactivate(selectedIds);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -99,7 +112,6 @@ export function SupervisorDataTable({
             <SelectItem value="ALL" className="cursor-pointer">
               All Roles
             </SelectItem>
-            {/* Supervisor không được lọc Admin nên có thể ẩn hoặc để backend xử lý (ở đây backend đã chặn) */}
             <SelectItem value="SUPERVISOR" className="cursor-pointer">
               SUPERVISOR
             </SelectItem>
@@ -144,11 +156,11 @@ export function SupervisorDataTable({
           Reset
         </Button>
 
-        {/* ACTION BUTTONS (CONDITIONAL RENDERING) */}
+        {/* ACTION BUTTONS */}
         {showBulkDeactivate && (
           <Button
             variant="destructive"
-            onClick={() => onBulkDeactivate(selectedIds)}
+            onClick={() => handleBulkClick("deactivate")}
             className="cursor-pointer ml-auto"
           >
             Deactivate {selectedIds.length} selected
@@ -157,8 +169,8 @@ export function SupervisorDataTable({
 
         {showBulkActivate && (
           <Button
-            variant="default" // Dùng màu xanh/chính
-            onClick={() => onBulkActivate(selectedIds)}
+            variant="default"
+            onClick={() => handleBulkClick("activate")}
             className="cursor-pointer ml-auto bg-green-600 hover:bg-green-700"
           >
             Activate {selectedIds.length} selected
@@ -254,6 +266,15 @@ export function SupervisorDataTable({
           </Button>
         </div>
       </div>
+
+      {/* BULK CONFIRM DIALOG */}
+      <BulkActionConfirmDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        count={selectedIds.length}
+        action={dialogAction}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

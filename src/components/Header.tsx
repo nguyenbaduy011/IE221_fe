@@ -11,9 +11,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/theme/ThemeToggle";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 export default function Header() {
-  const { logout } = useAuth();
+  const auth = useAuth();
 
   return (
     <header className="fixed h-13 top-0 left-0 w-full px-6 bg-background border-b flex items-center justify-between z-20 shadow-sm">
@@ -46,7 +47,10 @@ export default function Header() {
               <Button
                 variant="destructive"
                 className="w-full px-3 py-2 cursor-pointer"
-                onClick={() => logout()}
+                onClick={() => {
+                  auth.logout();
+                  toast.success("Logout successfully!");
+                }}
               >
                 Logout
               </Button>

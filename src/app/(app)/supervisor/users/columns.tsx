@@ -1,16 +1,25 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { User } from "@/types/user";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { User } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import dayjs from "dayjs";
 import { UserDetailDialog } from "@/components/UserDetailDialog";
+import dayjs from "dayjs";
+import { Mail, Shield, CheckCircle2, XCircle } from "lucide-react";
+
+import {
+  HoverCard,
+  HoverCardTrigger,
+  HoverCardContent,
+} from "@/components/ui/hover-card";
 
 export const getSupervisorColumns = (
   onToggleStatus: (user: User) => void,
+  onEdit: (user: User) => void,
   sessionUser: User | null
 ): ColumnDef<User>[] => [
+  // Select checkbox
   {
     id: "select",
     header: ({ table }) => (
@@ -23,7 +32,7 @@ export const getSupervisorColumns = (
     ),
     cell: ({ row }) => {
       const user = row.original;
-      const isSelf = sessionUser && sessionUser.id === user.id;
+      const isSelf = sessionUser?.id === user.id;
       return (
         <Checkbox
           checked={row.getIsSelected()}
@@ -36,61 +45,209 @@ export const getSupervisorColumns = (
     },
     enableSorting: false,
     enableHiding: false,
+    size: 50,
   },
-  { accessorKey: "id", header: "ID", size: 50 },
-  { accessorKey: "full_name", header: "Full Name" },
-  { accessorKey: "email", header: "Email" },
-  { accessorKey: "role", header: "Role" },
+
+  // ID
   {
-    accessorKey: "is_active",
-    header: "Status",
+    accessorKey: "id",
+    header: "ID",
+    size: 60,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">
+        {`UID-${String(row.original.id).padStart(6, "0")}`}
+      </span>
+    ),
+  },
+
+  // Name column with fixed width + hover
+  {
+    accessorKey: "full_name",
+    header: "Name",
+    size: 200,
     cell: ({ row }) => {
-      const active = row.original.is_active;
+      const user = row.original;
       return (
-        <span
-          className={`min-w-[90px] text-center inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border ${
-            active
-              ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30"
-              : "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30"
-          }`}
-        >
-          {active ? "Active" : "Inactive"}
-        </span>
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <span
+              className="block w-[200px] truncate overflow-hidden whitespace-nowrap cursor-pointer font-semibold text-sm text-foreground hover:text-primary transition-colors"
+              title={user.full_name}
+            >
+              {user.full_name}
+            </span>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-72 p-4 border border-border/50 shadow-lg">
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-1">
+                  Full Name
+                </p>
+                <p className="text-sm font-semibold text-foreground wrap-break-words">
+                  {user.full_name}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-1">
+                  Role
+                </p>
+                <p className="text-sm text-foreground/80 font-medium">
+                  {user.role}
+                </p>
+              </div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       );
     },
   },
+
+  // Email column with fixed width + hover
+  {
+    accessorKey: "email",
+    header: "Contact",
+    size: 250,
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <div className="flex items-center gap-2.5 cursor-pointer group">
+              <Mail className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+              <span
+                className="w-[250px] truncate overflow-hidden whitespace-nowrap text-sm text-primary hover:opacity-80 transition-opacity font-medium"
+                title={user.email}
+              >
+                {user.email}
+              </span>
+            </div>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-80 p-4 border border-border/50 shadow-lg">
+            <div className="space-y-3.5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                  Email
+                </p>
+                <p className="text-sm font-medium break-all text-foreground">
+                  {user.email}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                  Joined
+                </p>
+                <p className="text-sm text-foreground">
+                  {dayjs(user.date_joined).format("DD/MM/YYYY HH:mm")}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                  Gender
+                </p>
+                <p className="text-sm text-foreground">
+                  {user.gender === 1
+                    ? "Male"
+                    : user.gender === 2
+                    ? "Female"
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                  Birthday
+                </p>
+                <p className="text-sm text-foreground">
+                  {user.birthday
+                    ? dayjs(user.birthday).format("DD/MM/YYYY")
+                    : "—"}
+                </p>
+              </div>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
+      );
+    },
+  },
+
+  // Status
+  {
+    accessorKey: "is_active",
+    header: "Status",
+    size: 120,
+    cell: ({ row }) => {
+      const active = row.original.is_active;
+      return (
+        <div className="flex items-center gap-2.5">
+          {active ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          ) : (
+            <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+          )}
+          <span
+            className={`text-xs font-semibold tracking-wide ${
+              active
+                ? "text-emerald-700 dark:text-emerald-300"
+                : "text-red-700 dark:text-red-300"
+            }`}
+          >
+            {active ? "Active" : "Inactive"}
+          </span>
+        </div>
+      );
+    },
+  },
+
+  // Permissions / Staff
   {
     accessorKey: "is_staff",
-    header: "Staff",
-    cell: ({ row }) => (row.original.is_staff ? "Yes" : "No"),
+    header: "Permissions",
+    size: 120,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2.5">
+        <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
+        <span className="text-sm font-medium">
+          {row.original.is_staff ? (
+            <span className="text-primary">Admin</span>
+          ) : (
+            <span className="text-muted-foreground">User</span>
+          )}
+        </span>
+      </div>
+    ),
   },
-  {
-    accessorKey: "date_joined",
-    header: "Joined At",
-    cell: ({ row }) =>
-      dayjs(row.original.date_joined).format("DD/MM/YYYY HH:mm"),
-  },
+
+  // Actions
   {
     id: "actions",
     header: "Actions",
+    size: 240,
     cell: ({ row }) => {
       const user = row.original;
-      const isSelf = sessionUser && sessionUser.id === user.id;
-
+      const isSelf = sessionUser?.id === user.id;
       return (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onToggleStatus(user)}
             disabled={isSelf || false}
-            className={`cursor-pointer w-[100px] transition-colors ${
+            className={`text-xs font-medium transition-all duration-200 ${
               user.is_active
-                ? "hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50"
-                : "hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50"
+                ? "hover:text-red-600 hover:border-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 dark:hover:border-red-500/30"
+                : "hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30"
             }`}
           >
             {user.is_active ? "Deactivate" : "Activate"}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(user)}
+            disabled={isSelf || false}
+            className="text-xs font-medium"
+          >
+            Edit
           </Button>
 
           <UserDetailDialog user={user} />
