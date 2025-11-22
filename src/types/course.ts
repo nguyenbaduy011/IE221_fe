@@ -75,3 +75,31 @@ export interface Course {
   course_supervisors: CourseSupervisor[];
   course_subjects: CourseSubject[];
 }
+
+export enum CourseStatus {
+  NOT_STARTED = 0,
+  IN_PROGRESS = 1,
+  FINISHED = 2,
+}
+
+// Interface cho Course trả về từ API SupervisorMyCourseListView
+export interface DashboardCourse {
+  id: number;
+  name: string;
+  link_to_course: string | null;
+  image: string | null;
+  start_date: string;
+  finish_date: string;
+  status: CourseStatus;
+  created_at: string;
+  member_count: number;
+  supervisor_count: number;
+}
+// types/dashboard.ts
+
+export interface DashboardStats {
+  total_supervisors: number; // Tổng số supervisor (có thể lấy từ user list hoặc count)
+  total_trainees: number; // Tổng số học viên đang phụ trách
+  active_courses: number; // Số khóa học đang In Progress
+  completion_rate: number; // Tỷ lệ hoàn thành trung bình (%)
+}
