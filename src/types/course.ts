@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // types/course.ts
 import { User } from "./user";
 
@@ -95,11 +96,28 @@ export interface DashboardCourse {
   member_count: number;
   supervisor_count: number;
 }
-// types/dashboard.ts
+
+export interface ChartData {
+  name: string;
+  value: number;
+  color: string;
+  [key: string]: any;
+}
+
+export interface ActivityData {
+  id: number;
+  user: string;
+  action: string;
+  target: string;
+  time: string; 
+  avatar?: string;
+}
 
 export interface DashboardStats {
   total_supervisors: number; // Tổng số supervisor (có thể lấy từ user list hoặc count)
   total_trainees: number; // Tổng số học viên đang phụ trách
   active_courses: number; // Số khóa học đang In Progress
   completion_rate: number; // Tỷ lệ hoàn thành trung bình (%)
+  chart_data: ChartData[];
+  recent_activities: ActivityData[];
 }

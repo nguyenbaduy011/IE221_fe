@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SupervisorCourseDataTable } from "./course-data-table";
 import { getColumns } from "./course-columns";
 import { CourseStatus, DashboardCourse, DashboardStats } from "@/types/course";
+import { OverviewSection } from "./overview-section";
 
 const StatCard = ({
   title,
@@ -128,6 +129,10 @@ export default function SupervisorDashboard() {
             colorClass="bg-amber-500/10 text-amber-600 dark:text-amber-400"
           />
         </div>
+        <OverviewSection
+          chartData={stats?.chart_data || []}
+          activities={stats?.recent_activities || []}
+        />
 
         {/* TABLE SECTION */}
         <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
