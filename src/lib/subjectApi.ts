@@ -1,37 +1,57 @@
-import axiosClient from "@/lib/axiosClient";
-import { SubjectDetail, TaskStatus, Trainee } from "@/types/subjectDetails";
+// src/lib/subjectApi.ts
+import axiosClient from "./axiosClient";
+import { ApiResponse } from "./userApi"; // Tái sử dụng interface ApiResponse
+import { SubjectDetail, Task } from "@/types/subject";
+
+export type TaskStatus = "pending" | "in_progress" | "completed"; // Giả sử kiểu status
 
 export const subjectApi = {
-  getClassmates(courseId: string) {
-    return axiosClient.get<Trainee[]>(
-      `/api/supervisor/courses/${courseId}/students/`
+  getDetail(id: number) {
+    return axiosClient.get<ApiResponse<SubjectDetail>>(
+      `/api/users/my-course-subjects/${id}/`
     );
   },
 
-  getDetail(subjectId: string, studentId: number) {
+  getStudentSubjectDetail(subjectId: string, studentId: number) {
     return axiosClient.get<{ data: SubjectDetail }>(
       `/api/supervisor/subjects/${subjectId}/student/${studentId}/`
     );
   },
 
+  // --- Thêm task cho subject ---
   addTask(subjectId: string, taskName: string) {
     return axiosClient.post(`/api/supervisor/subjects/${subjectId}/tasks/`, {
       name: taskName,
     });
   },
 
+  // --- Thay đổi trạng thái task ---
   toggleTask(taskId: number, status: TaskStatus) {
     return axiosClient.patch(`/api/supervisor/tasks/${taskId}/`, {
       status: status,
     });
   },
 
-  completeSubject(userSubjectId: number) {
-    return axiosClient.post(
-      `/api/supervisor/user-subjects/${userSubjectId}/complete/`
+  updateTask(taskId: number, data: FormData) {
+    return axiosClient.patch<ApiResponse<Task>>(
+      `/api/users/user-tasks/${taskId}/`,
+      data,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
     );
   },
 
+  updateSubjectDates(
+    id: number,
+    data: { actual_start_day?: string; actual_end_day?: string }
+  ) {
+    return axiosClient.patch<ApiResponse<SubjectDetail>>(
+      `/api/users/my-course-subjects/${id}/`,
+      data
+    );
+  },
+  
   saveAssessment(userSubjectId: number, score: number, comment: string) {
     return axiosClient.patch(
       `/api/supervisor/user-subjects/${userSubjectId}/assessment/`,
@@ -39,6 +59,12 @@ export const subjectApi = {
         score: score,
         supervisor_comment: comment,
       }
+    );
+  },
+
+  finishSubject(id: number) {
+    return axiosClient.post<ApiResponse<SubjectDetail>>(
+      `/api/users/my-course-subjects/${id}/finish_subject/`
     );
   },
 };
