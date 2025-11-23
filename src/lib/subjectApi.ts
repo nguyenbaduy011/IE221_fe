@@ -1,43 +1,48 @@
-import axiosClient from "./axiosClient";
-import { SubjectDetail, Task } from "@/types/subject";
-
-// Định nghĩa lại Payload để đảm bảo Type Safety
-export interface UpdateDatePayload {
-  actual_start_day?: string;
-  actual_end_day?: string;
-}
+import axiosClient from "@/lib/axiosClient";
+import { SubjectDetail, TaskStatus, Trainee } from "@/types/subjectDetails";
 
 export const subjectApi = {
-  // GET /api/users/my-course-subjects/{id}/
-  // Backend trả về trực tiếp object SubjectDetail
-  getDetail(id: number) {
-    return axiosClient.get<SubjectDetail>(`/api/users/my-course-subjects/${id}/`);
+  getClassmates(courseId: string) {
+    return axiosClient.get<Trainee[]>(
+      `/api/supervisor/courses/${courseId}/students/`
+    );
   },
 
-  // PATCH /api/users/user-tasks/{id}/
-  // Endpoint này thuộc UserTaskViewSet
-  updateTask(taskId: number, data: FormData) {
-    return axiosClient.patch<Task>(
-      `/api/users/user-tasks/${taskId}/`,
-      data,
+  getDetail(subjectId: string, studentId: number) {
+    return axiosClient.get<{ data: SubjectDetail }>(
+      `/api/supervisor/subjects/${subjectId}/student/${studentId}/`
+    );
+  },
+
+  addTask(subjectId: string, taskName: string) {
+    // Backend yêu cầu { name: string } -> Đã đúng
+    return axiosClient.post(`/api/supervisor/subjects/${subjectId}/tasks/`, {
+      name: taskName,
+    });
+  },
+
+  toggleTask(taskId: number, status: TaskStatus) {
+    // Backend cần nhận chuỗi "DONE" hoặc "NOT_DONE"
+    // Do đã sửa Enum ở bước 1 thành string, nên ở đây gửi thẳng status là đúng
+    return axiosClient.patch(`/api/supervisor/tasks/${taskId}/`, {
+      status: status,
+    });
+  },
+
+  completeSubject(userSubjectId: number) {
+    return axiosClient.post(
+      `/api/supervisor/user-subjects/${userSubjectId}/complete/`
+    );
+  },
+
+  saveAssessment(userSubjectId: number, score: number, comment: string) {
+    // Backend SupervisorUserSubjectAssessmentView nhận "score" và "supervisor_comment"
+    return axiosClient.patch(
+      `/api/supervisor/user-subjects/${userSubjectId}/assessment/`,
       {
-        headers: { "Content-Type": "multipart/form-data" },
+        score: score,
+        supervisor_comment: comment,
       }
-    );
-  },
-
-  // PATCH /api/users/my-course-subjects/{id}/
-  updateSubjectDates(id: number, data: UpdateDatePayload) {
-    return axiosClient.patch<SubjectDetail>(
-      `/api/users/my-course-subjects/${id}/`,
-      data
-    );
-  },
-
-  // POST /api/users/my-course-subjects/{id}/finish_subject/
-  finishSubject(id: number) {
-    return axiosClient.post<SubjectDetail>(
-      `/api/users/my-course-subjects/${id}/finish_subject/`
     );
   },
 };
