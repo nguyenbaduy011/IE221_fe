@@ -3,7 +3,12 @@
 
 import { useFieldArray, Control } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2, GripVertical } from "lucide-react";
@@ -33,8 +38,12 @@ interface SortableTaskItemProps {
   remove: (index: number) => void;
 }
 
-function SortableTaskItem({ field, index, control, remove }: SortableTaskItemProps) {
-  // Hook của dnd-kit để xử lý item
+function SortableTaskItem({
+  field,
+  index,
+  control,
+  remove,
+}: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -47,8 +56,8 @@ function SortableTaskItem({ field, index, control, remove }: SortableTaskItemPro
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : "auto", // Đưa item đang kéo lên trên cùng
-    opacity: isDragging ? 0.5 : 1,    // Làm mờ nhẹ khi đang kéo
+    zIndex: isDragging ? 50 : "auto",
+    opacity: isDragging ? 0.5 : 1,
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -62,23 +71,19 @@ function SortableTaskItem({ field, index, control, remove }: SortableTaskItemPro
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 bg-white p-2 border rounded-md shadow-sm group hover:border-gray-400 transition-colors mb-2"
+      className="flex items-center gap-3 bg-background p-2 border border-border rounded-md shadow-sm group hover:border-primary/50 transition-colors mb-2"
     >
-      {/* FIX QUAN TRỌNG:
-        - Gắn attributes và listeners VÀO ĐÂY (chỉ cái nút này mới kích hoạt kéo)
-        - cursor-move: để hiện con trỏ di chuyển
-        - touch-none: ngăn trình duyệt xử lý chạm mặc định
-      */}
-      <div 
-        {...attributes} 
-        {...listeners} 
-        className="cursor-move touch-none p-1 text-gray-300 hover:text-gray-600"
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-move touch-none p-1 text-muted-foreground/50 hover:text-foreground transition-colors"
       >
         <GripVertical size={20} />
       </div>
 
-      {/* Số thứ tự */}
-      <span className="font-bold text-gray-500 w-6 text-center select-none">
+      {/* Index Number */}
+      <span className="font-bold text-muted-foreground w-6 text-center select-none">
         {index + 1}.
       </span>
 
@@ -91,8 +96,8 @@ function SortableTaskItem({ field, index, control, remove }: SortableTaskItemPro
             <FormControl>
               <Input
                 {...inputField}
-                placeholder="Nhập tên nhiệm vụ..."
-                className="border-0 shadow-none focus-visible:ring-0 px-0 font-medium h-auto py-1"
+                placeholder="Enter task name..."
+                className="border-0 shadow-none focus-visible:ring-0 px-0 font-medium h-auto py-1 bg-transparent placeholder:text-muted-foreground/50"
                 onKeyDown={handleKeyDown}
               />
             </FormControl>
@@ -101,13 +106,14 @@ function SortableTaskItem({ field, index, control, remove }: SortableTaskItemPro
         )}
       />
 
+      {/* Delete Button */}
       <Button
         type="button"
         variant="ghost"
         size="icon"
-        className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-red-50"
+        className="text-destructive opacity-0 group-hover:opacity-100 transition-all cursor-pointer hover:bg-destructive/10 hover:text-destructive"
         onClick={() => remove(index)}
-        title="Xóa nhiệm vụ này"
+        title="Delete task"
       >
         <Trash2 className="w-4 h-4" />
       </Button>
@@ -127,9 +133,9 @@ export default function TaskListEditor({ control }: Props) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-        activationConstraint: {
-            distance: 8,
-        },
+      activationConstraint: {
+        distance: 8,
+      },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -150,18 +156,17 @@ export default function TaskListEditor({ control }: Props) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Danh sách nhiệm vụ</CardTitle>
+        <CardTitle>Task List</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Bọc danh sách trong DndContext */}
-        <DndContext 
-            sensors={sensors} 
-            collisionDetection={closestCenter} 
-            onDragEnd={handleDragEnd}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          <SortableContext 
-            items={fields} 
+          <SortableContext
+            items={fields}
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-2">
@@ -181,10 +186,10 @@ export default function TaskListEditor({ control }: Props) {
         <Button
           type="button"
           variant="outline"
-          className="w-full border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 cursor-pointer h-12"
+          className="w-full border-dashed border-2 border-border hover:border-primary/50 hover:bg-primary/5 text-muted-foreground hover:text-primary cursor-pointer h-12"
           onClick={() => append({ name: "", position: fields.length + 1 })}
         >
-          <Plus className="w-4 h-4 mr-2" /> Thêm nhiệm vụ mới
+          <Plus className="w-4 h-4 mr-2" /> Add New Task
         </Button>
       </CardContent>
     </Card>

@@ -8,14 +8,14 @@ import axiosClient from "@/lib/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Pencil } from "lucide-react";
 import { toast } from "sonner";
-
 import TaskDetailView from "./TaskDetailView";
 import TaskEditForm from "./TaskEditForm";
+
 
 export default function TaskDetailPage() {
   const router = useRouter();
   const params = useParams();
-  
+
   const [task, setTask] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +24,8 @@ export default function TaskDetailPage() {
   const fetchData = async () => {
     try {
       const [taskRes, subRes] = await Promise.all([
-         axiosClient.get(`/api/tasks/${params.id}/`),
-         axiosClient.get("/api/supervisor/subjects/")
+        axiosClient.get(`/api/tasks/${params.id}/`),
+        axiosClient.get("/api/supervisor/subjects/"),
       ]);
 
       setTask(taskRes.data.data || taskRes.data);
@@ -33,7 +33,7 @@ export default function TaskDetailPage() {
       setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
     } catch (error) {
       console.error("Error fetching task:", error);
-      toast.error("Không thể tải thông tin Task");
+      toast.error("Failed to load task details");
       router.push("/supervisor/master-data/tasks");
     } finally {
       setLoading(false);
@@ -45,36 +45,47 @@ export default function TaskDetailPage() {
   }, [params.id]);
 
   const handleUpdateSuccess = () => {
-    router.push("/supervisor/master-data/tasks");
+    setIsEditing(false);
+    fetchData();
   };
 
-  if (loading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
-  if (!task) return <div className="text-center p-10">Không tìm thấy Task</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center p-10">
+        <Loader2 className="animate-spin text-primary" />
+      </div>
+    );
+  if (!task)
+    return (
+      <div className="text-center p-10 text-muted-foreground">
+        Task not found
+      </div>
+    );
 
   return (
     <div className="max-w-2xl mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()} 
-          className="pl-0 hover:bg-transparent hover:text-primary cursor-pointer"
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="pl-0 hover:bg-transparent hover:text-primary cursor-pointer text-muted-foreground"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to list
         </Button>
-        
+
         {!isEditing && (
           <Button onClick={() => setIsEditing(true)} className="cursor-pointer">
-            <Pencil className="w-4 h-4 mr-2" /> Chỉnh sửa
+            <Pencil className="w-4 h-4 mr-2" /> Edit
           </Button>
         )}
       </div>
 
       {isEditing ? (
-        <TaskEditForm 
-          initialData={task} 
+        <TaskEditForm
+          initialData={task}
           subjects={subjects}
-          onCancel={() => setIsEditing(false)} 
-          onSuccess={handleUpdateSuccess} 
+          onCancel={() => setIsEditing(false)}
+          onSuccess={handleUpdateSuccess}
         />
       ) : (
         <TaskDetailView task={task} />

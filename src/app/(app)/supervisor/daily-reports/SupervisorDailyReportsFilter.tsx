@@ -44,27 +44,28 @@ export default function SupervisorDailyReportsFilter({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-5 mb-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+    <div className="bg-card p-5 mb-6 rounded-xl shadow-sm border border-border">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col sm:flex-row items-end gap-4"
       >
-        <div className="w-full sm:w-auto flex-1 space-y-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {/* Course Select */}
+        <div className="w-full sm:w-auto flex-1 space-y-2">
+          <label className="text-sm font-medium text-foreground">
             Select Course
           </label>
-          
+
           <Select
             value={courseId !== null ? String(courseId) : "ALL"}
             onValueChange={(val) =>
               setCourseId(val === "ALL" ? null : Number(val))
             }
           >
-            <SelectTrigger className="w-full bg-white dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-blue-500">
+            <SelectTrigger className="w-full bg-background border-input focus:ring-ring">
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
 
-            <SelectContent className="max-h-[200px] overflow-y-auto bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800">
+            <SelectContent className="max-h-[200px]">
               <SelectItem value="ALL" className="font-semibold cursor-pointer">
                 All Courses
               </SelectItem>
@@ -81,22 +82,24 @@ export default function SupervisorDailyReportsFilter({
           </Select>
         </div>
 
-        <div className="w-full sm:w-auto space-y-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
+        {/* Date Picker */}
+        <div className="w-full sm:w-auto space-y-2">
+          <label className="text-sm font-medium text-foreground block">
             Date
           </label>
           <Input
             type="date"
-            className="w-full sm:w-48 border-gray-300 dark:border-gray-700 focus:border-blue-500"
+            className="w-full sm:w-48 bg-background border-input focus:ring-ring"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
 
+        {/* Actions */}
         <div className="flex gap-2 w-full sm:w-auto">
           <Button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 font-semibold transition flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none font-semibold transition-all"
           >
             Apply Filter
           </Button>
@@ -104,7 +107,7 @@ export default function SupervisorDailyReportsFilter({
             type="button"
             variant="outline"
             onClick={handleReset}
-            className="font-semibold flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none font-semibold"
           >
             Reset
           </Button>

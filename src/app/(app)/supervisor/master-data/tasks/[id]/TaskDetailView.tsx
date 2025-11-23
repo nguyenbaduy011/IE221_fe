@@ -11,16 +11,22 @@ export default function TaskDetailView({ task }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Chi tiết Task</CardTitle>
+        <CardTitle>Task Details</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <label className="text-sm font-medium text-muted-foreground">Tên Task</label>
-          <p className="text-lg font-semibold">{task.name}</p>
+          <label className="text-sm font-medium text-muted-foreground">
+            Task Name
+          </label>
+          <p className="text-lg font-semibold text-foreground">{task.name}</p>
         </div>
         <div>
-          <label className="text-sm font-medium text-muted-foreground">Tên môn học</label>
-          <p className="text-lg">{task.subject_name || "---"}</p>
+          <label className="text-sm font-medium text-muted-foreground">
+            Subject Name
+          </label>
+          <p className="text-lg text-foreground">
+            {task.subject_name || "---"}
+          </p>
         </div>
       </CardContent>
     </Card>

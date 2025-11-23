@@ -94,7 +94,10 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
 
     try {
       setLoadingDetail(true);
-      const res = await subjectApi.getDetail(subjectId, selectedStudentId);
+      const res = await subjectApi.getStudentSubjectDetail(
+        subjectId,
+        selectedStudentId
+      );
 
       let finalData = res as any;
       // Bóc tách dữ liệu
@@ -675,7 +678,7 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
                   // --- CHẾ ĐỘ VIEW (MÀU SẮC) ---
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="flex items-center gap-6 p-8 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
+                      <div className="flex items-center gap-6 p-8 bg-linear-to-br from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
                         <div className="flex-1">
                           <p className="text-xs uppercase text-muted-foreground font-bold tracking-wider mb-2">
                             Score
