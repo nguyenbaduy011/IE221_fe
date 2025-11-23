@@ -15,15 +15,12 @@ export const subjectApi = {
   },
 
   addTask(subjectId: string, taskName: string) {
-    // Backend yêu cầu { name: string } -> Đã đúng
     return axiosClient.post(`/api/supervisor/subjects/${subjectId}/tasks/`, {
       name: taskName,
     });
   },
 
   toggleTask(taskId: number, status: TaskStatus) {
-    // Backend cần nhận chuỗi "DONE" hoặc "NOT_DONE"
-    // Do đã sửa Enum ở bước 1 thành string, nên ở đây gửi thẳng status là đúng
     return axiosClient.patch(`/api/supervisor/tasks/${taskId}/`, {
       status: status,
     });
@@ -36,7 +33,6 @@ export const subjectApi = {
   },
 
   saveAssessment(userSubjectId: number, score: number, comment: string) {
-    // Backend SupervisorUserSubjectAssessmentView nhận "score" và "supervisor_comment"
     return axiosClient.patch(
       `/api/supervisor/user-subjects/${userSubjectId}/assessment/`,
       {
