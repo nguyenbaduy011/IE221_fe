@@ -5,8 +5,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axiosClient from "@/lib/axiosClient";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -19,75 +32,112 @@ interface Props {
   onSuccess: () => void;
 }
 
-export default function TaskEditForm({ initialData, subjects, onCancel, onSuccess }: Props) {
+export default function TaskEditForm({
+  initialData,
+  subjects,
+  onCancel,
+  onSuccess,
+}: Props) {
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
-    defaultValues: { 
-        name: initialData.name, 
-        subject_id: initialData.subject_id?.toString() || "" 
+    defaultValues: {
+      name: initialData.name,
+      subject_id: initialData.subject_id?.toString() || "",
     },
   });
 
   const onSubmit = async (values: TaskFormValues) => {
     const payload = { ...values, subject_id: Number(values.subject_id) };
-    
+
     try {
       await axiosClient.put(`/api/tasks/${initialData.id}/`, payload);
-      toast.success("Đã cập nhật Task");
+      toast.success("Task updated successfully");
       onSuccess();
     } catch (error: any) {
       console.error("Update error:", error);
       const errorData = error.response?.data;
       if (errorData?.non_field_errors) {
-            toast.error(errorData.non_field_errors[0]);
+        toast.error(errorData.non_field_errors[0]);
       } else if (errorData?.name) {
-            form.setError("name", { message: errorData.name[0] });
+        form.setError("name", { message: errorData.name[0] });
       } else {
-            toast.error("Có lỗi xảy ra khi cập nhật Task"); 
+        toast.error("An error occurred while updating the task");
       }
     }
   };
 
   return (
     <Card>
-      <CardHeader><CardTitle>Chỉnh sửa Task</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>Edit Task</CardTitle>
+      </CardHeader>
       <CardContent>
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Subject Selection */}
             <FormField
-                control={form.control}
-                name="subject_id"
-                render={({ field }) => (
+              control={form.control}
+              name="subject_id"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Tên Môn học <span className="text-red-500">*</span></FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Chọn môn học" /></SelectTrigger></FormControl>
+                  <FormLabel>
+                    Subject <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="Select a subject" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
-                        {subjects.map((s) => (
-                        <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
-                        ))}
+                      {subjects.map((s) => (
+                        <SelectItem key={s.id} value={s.id.toString()}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
-                    </Select>
-                    <FormMessage />
+                  </Select>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
+
+            {/* Task Name Input */}
             <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
+              control={form.control}
+              name="name"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Tên Task <span className="text-red-500">*</span></FormLabel>
-                    <FormControl><Input placeholder="Nhập tên task..." {...field} /></FormControl>
-                    <FormMessage />
+                  <FormLabel>
+                    Task Name <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter task name..." {...field} />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
-            <div className="flex justify-end space-x-4 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={onCancel} className="cursor-pointer">Hủy</Button>
-                <Button type="submit" className="cursor-pointer">Xác nhận</Button>
+
+            {/* Footer Actions */}
+            <div className="flex justify-end space-x-4 pt-4 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="cursor-pointer">
+                Save Changes
+              </Button>
             </div>
-            </form>
+          </form>
         </Form>
       </CardContent>
     </Card>

@@ -8,14 +8,13 @@ import axiosClient from "@/lib/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Pencil } from "lucide-react";
 import { toast } from "sonner";
-
-import CategoryDetailView from "./CategoryDetailView";
 import CategoryEditForm from "./CategoryEditForm";
+import CategoryDetailView from "./CategoryDetailView";
 
 export default function CategoryDetailPage() {
   const router = useRouter();
   const params = useParams();
-  
+
   const [category, setCategory] = useState<any>(null);
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,16 +24,15 @@ export default function CategoryDetailPage() {
     try {
       const [catRes, subRes] = await Promise.all([
         axiosClient.get(`/api/supervisor/categories/${params.id}/`),
-        axiosClient.get("/api/supervisor/subjects/")
+        axiosClient.get("/api/supervisor/subjects/"),
       ]);
 
       setCategory(catRes.data.data || catRes.data);
       const subData = subRes.data.data || subRes.data;
       setAllSubjects(Array.isArray(subData) ? subData : []);
-      
     } catch (error) {
       console.error(error);
-      toast.error("Không thể tải dữ liệu");
+      toast.error("Failed to load data");
       router.push("/supervisor/master-data/categories");
     } finally {
       setLoading(false);
@@ -46,37 +44,47 @@ export default function CategoryDetailPage() {
   }, [params.id]);
 
   const handleUpdateSuccess = () => {
+    // Redirect back to list after update
     router.push("/supervisor/master-data/categories");
-    
   };
 
-  if (loading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
-  if (!category) return <div className="text-center p-10">Không tìm thấy danh mục</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center p-10">
+        <Loader2 className="animate-spin text-primary" />
+      </div>
+    );
+  if (!category)
+    return (
+      <div className="text-center p-10 text-muted-foreground">
+        Category not found
+      </div>
+    );
 
   return (
     <div className="max-w-3xl mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()} 
-          className="pl-0 hover:bg-transparent hover:text-primary cursor-pointer"
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="pl-0 hover:bg-transparent hover:text-primary cursor-pointer text-muted-foreground"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to list
         </Button>
-        
+
         {!isEditing && (
           <Button onClick={() => setIsEditing(true)} className="cursor-pointer">
-            <Pencil className="w-4 h-4 mr-2" /> Chỉnh sửa
+            <Pencil className="w-4 h-4 mr-2" /> Edit
           </Button>
         )}
       </div>
 
       {isEditing ? (
-        <CategoryEditForm 
-          initialData={category} 
+        <CategoryEditForm
+          initialData={category}
           allSubjects={allSubjects}
-          onCancel={() => setIsEditing(false)} 
-          onSuccess={handleUpdateSuccess} 
+          onCancel={() => setIsEditing(false)}
+          onSuccess={handleUpdateSuccess}
         />
       ) : (
         <CategoryDetailView category={category} />

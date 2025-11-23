@@ -114,20 +114,31 @@ export default function AdminDailyReportsClient() {
   }, [totalPages, currentPage]);
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      <div className="flex items-center gap-3 border-b pb-4 dark:border-gray-700">
-        <Users className="w-8 h-8 text-blue-600" />
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
-          Trainee Daily Reports
-        </h1>
+    <div className="container mx-auto px-4 py-8 space-y-8 bg-background min-h-screen">
+      {/* Header Section */}
+      <div className="flex items-start sm:items-center gap-4 border-b border-border pb-6">
+        <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
+          <Users className="w-8 h-8 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+            Trainee Daily Reports
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Monitor and review daily progress submitted by trainees across all
+            courses.
+          </p>
+        </div>
       </div>
 
+      {/* Filter Section */}
       <AdminDailyReportsFilter
         courses={courses}
         currentFilter={filter}
         onFilterChange={handleFilterChange}
       />
 
+      {/* List Section */}
       <AdminDailyReportsList
         reports={paginatedReports}
         loading={loading}

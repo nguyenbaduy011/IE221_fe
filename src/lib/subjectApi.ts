@@ -1,11 +1,16 @@
 // src/lib/subjectApi.ts
+import { TaskStatus, Trainee } from "@/types/subjectDetails";
 import axiosClient from "./axiosClient";
-import { ApiResponse } from "./userApi"; // Tái sử dụng interface ApiResponse
+import { ApiResponse } from "./userApi"; 
 import { SubjectDetail, Task } from "@/types/subject";
 
-export type TaskStatus = "pending" | "in_progress" | "completed"; // Giả sử kiểu status
-
 export const subjectApi = {
+  getClassmates(courseId: string) {
+    return axiosClient.get<Trainee[]>(
+      `/api/supervisor/courses/${courseId}/students/`
+    );
+  },
+
   getDetail(id: number) {
     return axiosClient.get<ApiResponse<SubjectDetail>>(
       `/api/users/my-course-subjects/${id}/`
@@ -51,7 +56,7 @@ export const subjectApi = {
       data
     );
   },
-  
+
   saveAssessment(userSubjectId: number, score: number, comment: string) {
     return axiosClient.patch(
       `/api/supervisor/user-subjects/${userSubjectId}/assessment/`,
@@ -59,6 +64,12 @@ export const subjectApi = {
         score: score,
         supervisor_comment: comment,
       }
+    );
+  },
+
+  completeSubject(userSubjectId: number) {
+    return axiosClient.post(
+      `/api/supervisor/user-subjects/${userSubjectId}/complete/`
     );
   },
 
