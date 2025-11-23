@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-// Bỏ useParams vì đã nhận props, hoặc giữ lại làm fallback
-import { subjectApi } from "@/lib/subjectApi";
+// Bỏ useParams vì đã nhận props, hoặc giữ lại làm fallback ádadasdasda
 import { SubjectDetail, TaskStatus } from "@/types/subject";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
