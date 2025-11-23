@@ -16,7 +16,6 @@ import {
 
 export const getSupervisorColumns = (
   onToggleStatus: (user: User) => void,
-  onEdit: (user: User) => void,
   sessionUser: User | null
 ): ColumnDef<User>[] => [
   // Select checkbox
@@ -60,7 +59,7 @@ export const getSupervisorColumns = (
     ),
   },
 
-  // Name column with fixed width + hover
+  // Name
   {
     accessorKey: "full_name",
     header: "Name",
@@ -102,7 +101,7 @@ export const getSupervisorColumns = (
     },
   },
 
-  // Email column with fixed width + hover
+  // Email / Contact
   {
     accessorKey: "email",
     header: "Contact",
@@ -148,8 +147,8 @@ export const getSupervisorColumns = (
                   {user.gender === 1
                     ? "Male"
                     : user.gender === 2
-                    ? "Female"
-                    : "—"}
+                      ? "Female"
+                      : "—"}
                 </p>
               </div>
               <div>
@@ -225,7 +224,7 @@ export const getSupervisorColumns = (
       const user = row.original;
       const isSelf = sessionUser?.id === user.id;
       return (
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-start">
           <Button
             variant="outline"
             size="sm"
@@ -238,16 +237,6 @@ export const getSupervisorColumns = (
             }`}
           >
             {user.is_active ? "Deactivate" : "Activate"}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(user)}
-            disabled={isSelf || false}
-            className="text-xs font-medium"
-          >
-            Edit
           </Button>
 
           <UserDetailDialog user={user} />
