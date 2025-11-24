@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import {
   DragDropContext,
@@ -64,49 +64,81 @@ interface CourseEditForm {
   link_to_course: string;
 }
 
-// --- COMPONENT: USER SEARCH DIALOG ---
+// --- COMPONENT: USER SEARCH DIALOG (CLIENT-SIDE FILTERING) ---
 const UserSearchDialog = ({
   isOpen,
   onClose,
   onSelect,
   type,
+  excludeIds = [],
 }: {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (id: number) => void;
   type: "Supervisor" | "Trainee";
+  excludeIds?: number[];
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
-    setIsSearching(true);
-    try {
-      const res = await userApi.getAll({
-        search: searchTerm,
-        role: type.toUpperCase(),
-      });
-      const data =
-        (res.data as any).data || (res.data as any).results || res.data;
-      setSearchResults(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Search failed", error);
-    } finally {
-      setIsSearching(false);
+  // useEffect fetchAllUsers ... (Giữ nguyên code cũ của bạn)
+  useEffect(() => {
+    if (isOpen) {
+      const fetchAllUsers = async () => {
+        setIsSearching(true);
+        try {
+          const res = await userApi.getAll();
+          const data =
+            (res.data as any).data || (res.data as any).results || res.data;
+          const safeData = Array.isArray(data) ? data : [];
+          setAllUsers(safeData);
+          setSearchResults(safeData.filter((u) => !excludeIds.includes(u.id)));
+        } catch (error) {
+          console.error("Failed to fetch users", error);
+        } finally {
+          setIsSearching(false);
+        }
+      };
+      fetchAllUsers();
     }
-  };
+  }, [isOpen]);
+
+  // useEffect filter ... (Giữ nguyên code cũ của bạn)
+  useEffect(() => {
+    if (!allUsers.length) return;
+
+    const lowerTerm = searchTerm.toLowerCase();
+    const targetRole = type.toUpperCase();
+
+    const filtered = allUsers.filter((user) => {
+      const roleMatch = user.role ? user.role === targetRole : true;
+      const nameMatch = user.full_name?.toLowerCase().includes(lowerTerm);
+      const emailMatch = user.email?.toLowerCase().includes(lowerTerm);
+      const notInCourse = !excludeIds.includes(user.id);
+
+      return roleMatch && (nameMatch || emailMatch) && notInCourse;
+    });
+
+    setSearchResults(filtered);
+
+    // QUAN TRỌNG: Thay `excludeIds` bằng `JSON.stringify(excludeIds)`
+    // Điều này giúp React so sánh nội dung mảng "[1,2]" thay vì địa chỉ bộ nhớ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, allUsers, type, JSON.stringify(excludeIds)]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
+        {/* --- PHẦN BỊ THIẾU CẦN THÊM VÀO --- */}
         <DialogHeader>
           <DialogTitle>Add {type}</DialogTitle>
           <DialogDescription>
             Search for a {type.toLowerCase()} by name or email.
           </DialogDescription>
         </DialogHeader>
+        {/* ----------------------------------- */}
 
         <div className="space-y-4 mt-2">
           <div className="flex gap-2">
@@ -114,9 +146,8 @@ const UserSearchDialog = ({
               placeholder="Type name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
-            <Button onClick={handleSearch} disabled={isSearching}>
+            <Button disabled={isSearching} variant="ghost" size="icon">
               {isSearching ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
@@ -129,8 +160,8 @@ const UserSearchDialog = ({
             {searchResults.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-4">
                 {isSearching
-                  ? "Searching..."
-                  : "No users found. Try a different keyword."}
+                  ? "Loading users..."
+                  : "No users found matching your criteria."}
               </p>
             ) : (
               <div className="space-y-2">
@@ -184,7 +215,9 @@ const PeopleList = ({
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const safeData = Array.isArray(data) ? data : [];
-
+  const existingIds = useMemo(() => {
+    return safeData.map((user) => user.id);
+  }, [safeData]); // Chỉ tính toán lại khi safeData thay đổi
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -201,6 +234,7 @@ const PeopleList = ({
           onClose={() => setIsDialogOpen(false)}
           onSelect={onAdd}
           type={type}
+          excludeIds={existingIds} // Truyền mảng đã được memoize
         />
       </div>
 
@@ -830,26 +864,33 @@ export default function AdminCourseDetailPage() {
         adminApi.getTrainees(courseId),
       ]);
 
-      // Course Data
+      // --- XỬ LÝ DATA KHÓA HỌC ---
       const courseBody = courseRes.data as any;
       let actualCourseData = courseBody;
+      // Nếu có wrapper 'data', lấy ruột bên trong
       if (courseBody && courseBody.data && !courseBody.id) {
         actualCourseData = courseBody.data;
       }
       setCourse(actualCourseData);
 
-      // Trainees Data
+      // --- XỬ LÝ DATA TRAINEES ---
       const traineesBody = traineesRes.data as any;
       let actualTraineesData: User[] = [];
+
       if (Array.isArray(traineesBody)) {
+        // Trường hợp 1: Trả về mảng [User, User]
         actualTraineesData = traineesBody;
       } else if (traineesBody && Array.isArray(traineesBody.data)) {
+        // Trường hợp 2: Trả về { data: [User, User] } <--- Đây là case của bạn
         actualTraineesData = traineesBody.data;
       } else if (traineesBody && Array.isArray(traineesBody.results)) {
+        // Trường hợp 3: Trả về { results: [User, User] }
         actualTraineesData = traineesBody.results;
       }
+
       setTrainees(actualTraineesData);
 
+      // Set Form
       if (actualCourseData) {
         setEditForm({
           name: actualCourseData.name || "",
