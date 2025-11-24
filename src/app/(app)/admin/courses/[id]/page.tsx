@@ -1,19 +1,31 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { GripVertical, Search } from "lucide-react";
+import {
+  GripVertical,
+  Search,
+  Pencil,
+  Trash2,
+  Plus,
+  UserPlus,
+  Loader2,
+  Save,
+  X,
+  BookOpen,
+  Users,
+} from "lucide-react";
 import {
   adminApi,
   AdminCourseDetail,
   AdminCourseSubject,
-  Subject, // Import Interface Subject gốc
+  Subject,
 } from "@/lib/adminApi";
 import { userApi } from "@/lib/userApi";
 import { User } from "@/types/user";
@@ -37,19 +49,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Import Icons
-import {
-  Loader2,
-  Save,
-  Edit,
-  X,
-  Users,
-  BookOpen,
-  Trash2,
-  Plus,
-  UserPlus,
-} from "lucide-react";
-
 // --- TYPES ---
 type EditableSubjectField =
   | "estimated_time_days"
@@ -64,7 +63,7 @@ interface CourseEditForm {
   link_to_course: string;
 }
 
-// --- COMPONENT: USER SEARCH DIALOG (CLIENT-SIDE FILTERING) ---
+// --- COMPONENT: USER SEARCH DIALOG ---
 const UserSearchDialog = ({
   isOpen,
   onClose,
@@ -83,7 +82,9 @@ const UserSearchDialog = ({
   const [isSearching, setIsSearching] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
-  // useEffect fetchAllUsers ... (Giữ nguyên code cũ của bạn)
+  // Biến hiển thị: Nếu là Supervisor thì hiện chữ "Trainer"
+  const displayLabel = type === "Supervisor" ? "Trainer" : type;
+
   useEffect(() => {
     if (isOpen) {
       const fetchAllUsers = async () => {
@@ -105,7 +106,6 @@ const UserSearchDialog = ({
     }
   }, [isOpen]);
 
-  // useEffect filter ... (Giữ nguyên code cũ của bạn)
   useEffect(() => {
     if (!allUsers.length) return;
 
@@ -122,23 +122,19 @@ const UserSearchDialog = ({
     });
 
     setSearchResults(filtered);
-
-    // QUAN TRỌNG: Thay `excludeIds` bằng `JSON.stringify(excludeIds)`
-    // Điều này giúp React so sánh nội dung mảng "[1,2]" thay vì địa chỉ bộ nhớ
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, allUsers, type, JSON.stringify(excludeIds)]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
-        {/* --- PHẦN BỊ THIẾU CẦN THÊM VÀO --- */}
         <DialogHeader>
-          <DialogTitle>Add {type}</DialogTitle>
+          {/* Cập nhật tiêu đề Dialog */}
+          <DialogTitle>Add {displayLabel}</DialogTitle>
           <DialogDescription>
-            Search for a {type.toLowerCase()} by name or email.
+            Search for a {displayLabel.toLowerCase()} by name or email.
           </DialogDescription>
         </DialogHeader>
-        {/* ----------------------------------- */}
 
         <div className="space-y-4 mt-2">
           <div className="flex gap-2">
@@ -215,9 +211,14 @@ const PeopleList = ({
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const safeData = Array.isArray(data) ? data : [];
+
+  // Biến hiển thị: Nếu là Supervisor thì hiện chữ "Trainer"
+  const displayLabel = type === "Supervisor" ? "Trainer" : type;
+
   const existingIds = useMemo(() => {
     return safeData.map((user) => user.id);
-  }, [safeData]); // Chỉ tính toán lại khi safeData thay đổi
+  }, [safeData]);
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -225,8 +226,9 @@ const PeopleList = ({
           {title} ({safeData.length})
         </h3>
 
+        {/* Cập nhật text nút bấm */}
         <Button size="sm" onClick={() => setIsDialogOpen(true)}>
-          <UserPlus className="w-4 h-4 mr-2" /> Add {type}
+          <UserPlus className="w-4 h-4 mr-2" /> Add {displayLabel}
         </Button>
 
         <UserSearchDialog
@@ -234,7 +236,7 @@ const PeopleList = ({
           onClose={() => setIsDialogOpen(false)}
           onSelect={onAdd}
           type={type}
-          excludeIds={existingIds} // Truyền mảng đã được memoize
+          excludeIds={existingIds}
         />
       </div>
 
@@ -264,7 +266,7 @@ const PeopleList = ({
         ))}
         {safeData.length === 0 && (
           <div className="p-4 text-center text-muted-foreground">
-            No {title} found.
+            No {displayLabel.toLowerCase()}s added.
           </div>
         )}
       </div>
@@ -281,27 +283,19 @@ interface SubjectsTabProps {
 const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
   const [subjects, setSubjects] = useState<AdminCourseSubject[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // State cho Dialog Add Subject
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [activeAddTab, setActiveAddTab] = useState<"create" | "existing">(
     "create"
   );
-
-  // Form Create New
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newSubjectDays, setNewSubjectDays] = useState(1);
-
-  // Form Select Existing
   const [existingSubjects, setExistingSubjects] = useState<Subject[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
-
   const [isAdding, setIsAdding] = useState(false);
 
-  // 1. Hàm lấy dữ liệu subjects của course
   const fetchSubjects = async () => {
     try {
       const res = await adminApi.getCourseSubjects(courseId);
@@ -328,7 +322,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     fetchSubjects();
   }, [courseId]);
 
-  // 2. Hàm lấy danh sách Subject có sẵn (Debounce search)
   const fetchAllSubjects = async () => {
     try {
       const res = await adminApi.getAllSubjects({ search: searchTerm });
@@ -349,7 +342,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     }
   }, [searchTerm, isAddDialogOpen, activeAddTab]);
 
-  // 3. Xử lý Add Subject (Chung cho cả 2 tab)
   const handleAddSubject = async () => {
     setIsAdding(true);
     try {
@@ -370,7 +362,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
 
       await adminApi.addSubject(courseId, payload);
 
-      // Reset & Reload
       setIsAddDialogOpen(false);
       setNewSubjectName("");
       setNewSubjectDays(1);
@@ -386,7 +377,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     }
   };
 
-  // 4. Xử lý Add Task
   const handleAddTask = async (csId: number, taskName: string) => {
     try {
       await adminApi.addTask(courseId, csId, taskName);
@@ -397,7 +387,29 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     }
   };
 
-  // 5. Xử lý Drag & Drop
+  const handleEditTask = async (taskId: number, currentName: string) => {
+    const newName = prompt("Nhập tên task mới:", currentName);
+    if (newName && newName !== currentName) {
+      try {
+        await adminApi.updateTask(taskId, newName);
+        fetchSubjects();
+      } catch (error) {
+        alert("Lỗi cập nhật task");
+      }
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (confirm("Bạn có chắc chắn muốn xóa task này?")) {
+      try {
+        await adminApi.deleteTask(taskId);
+        fetchSubjects();
+      } catch (error) {
+        alert("Lỗi xóa task");
+      }
+    }
+  };
+
   const onDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
     if (!isEditing) return;
@@ -433,7 +445,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     if (!isEditing) return;
     try {
       await adminApi.updateCourseSubject(id, { [field]: value });
-      console.log("Saved", field, value);
     } catch (error) {
       alert("Failed to save changes");
     }
@@ -520,7 +531,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                   <TabsTrigger value="existing">Select Existing</TabsTrigger>
                 </TabsList>
 
-                {/* TAB 1: CREATE NEW */}
                 <TabsContent value="create" className="space-y-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
@@ -550,7 +560,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                   </div>
                 </TabsContent>
 
-                {/* TAB 2: SELECT EXISTING */}
                 <TabsContent value="existing" className="space-y-4">
                   <div className="flex gap-2 mb-2">
                     <Input
@@ -689,20 +698,56 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                                 </Button>
                               )}
                             </div>
-                            {item.subject?.tasks &&
-                            item.subject.tasks.length > 0 ? (
-                              <ul className="list-disc list-inside mt-1 space-y-0.5 pl-1">
-                                {item.subject.tasks.map((t) => (
-                                  <li key={t.id} className="truncate">
-                                    {t.name}
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <span className="italic opacity-70">
-                                No tasks available
-                              </span>
-                            )}
+                            <div className="mt-2 space-y-1 pl-1">
+                              {item.subject.tasks &&
+                              item.subject.tasks.length > 0 ? (
+                                item.subject.tasks.map((t) => (
+                                  <div
+                                    key={t.id}
+                                    className="group flex items-center justify-between py-1 px-2 rounded hover:bg-muted/50 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-primary/40 flex-shrink-0" />
+                                      <span
+                                        className="text-sm truncate text-foreground/90"
+                                        title={t.name}
+                                      >
+                                        {t.name}
+                                      </span>
+                                    </div>
+
+                                    {isEditing && (
+                                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 text-muted-foreground hover:text-primary"
+                                          onClick={() =>
+                                            handleEditTask(t.id, t.name)
+                                          }
+                                          title="Edit Task"
+                                        >
+                                          <Pencil className="w-3 h-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                          onClick={() => handleDeleteTask(t.id)}
+                                          title="Delete Task"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="italic text-xs opacity-70 pl-2">
+                                  No tasks available
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -841,6 +886,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
 // --- 4. MAIN PAGE ---
 export default function AdminCourseDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const courseId = Number(params.id);
 
   const [course, setCourse] = useState<AdminCourseDetail | null>(null);
@@ -856,6 +902,13 @@ export default function AdminCourseDetailPage() {
     link_to_course: "",
   });
 
+  // Logic kiểm tra edit mode
+  useEffect(() => {
+    if (searchParams.get("edit") === "true") {
+      setIsEditing(true);
+    }
+  }, [searchParams]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -864,33 +917,44 @@ export default function AdminCourseDetailPage() {
         adminApi.getTrainees(courseId),
       ]);
 
-      // --- XỬ LÝ DATA KHÓA HỌC ---
+      // Xử lý Course Data
       const courseBody = courseRes.data as any;
-      let actualCourseData = courseBody;
-      // Nếu có wrapper 'data', lấy ruột bên trong
-      if (courseBody && courseBody.data && !courseBody.id) {
-        actualCourseData = courseBody.data;
+      let actualCourseData =
+        courseBody && courseBody.data && !courseBody.id
+          ? courseBody.data
+          : courseBody;
+
+      if (actualCourseData.supervisors) {
+        // giữ nguyên
+      } else if (
+        actualCourseData.members &&
+        actualCourseData.members.trainers
+      ) {
+        actualCourseData.supervisors =
+          actualCourseData.members.trainers.list.map((t: any) => ({
+            id: Math.random(),
+            supervisor: t,
+          }));
       }
       setCourse(actualCourseData);
 
-      // --- XỬ LÝ DATA TRAINEES ---
+      // Xử lý Trainee Data
       const traineesBody = traineesRes.data as any;
       let actualTraineesData: User[] = [];
-
       if (Array.isArray(traineesBody)) {
-        // Trường hợp 1: Trả về mảng [User, User]
         actualTraineesData = traineesBody;
-      } else if (traineesBody && Array.isArray(traineesBody.data)) {
-        // Trường hợp 2: Trả về { data: [User, User] } <--- Đây là case của bạn
+      } else if (traineesBody?.data && Array.isArray(traineesBody.data)) {
         actualTraineesData = traineesBody.data;
-      } else if (traineesBody && Array.isArray(traineesBody.results)) {
-        // Trường hợp 3: Trả về { results: [User, User] }
+      } else if (traineesBody?.results && Array.isArray(traineesBody.results)) {
         actualTraineesData = traineesBody.results;
+      } else if (
+        actualCourseData.members &&
+        actualCourseData.members.trainees
+      ) {
+        actualTraineesData = actualCourseData.members.trainees.list;
       }
-
       setTrainees(actualTraineesData);
 
-      // Set Form
       if (actualCourseData) {
         setEditForm({
           name: actualCourseData.name || "",
@@ -981,7 +1045,11 @@ export default function AdminCourseDetailPage() {
 
   if (!course) return <div>Course not found</div>;
 
-  const supervisorList = course.supervisors?.map((s) => s.supervisor) || [];
+  const supervisorList =
+    course.supervisors?.map((s) => {
+      if ((s as any).email) return s as any as User;
+      return s.supervisor;
+    }) || [];
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6 pb-24">
@@ -998,7 +1066,7 @@ export default function AdminCourseDetailPage() {
             </>
           ) : (
             <>
-              <Edit className="mr-2 h-4 w-4" /> Edit Course
+              <Pencil className="mr-2 h-4 w-4" /> Edit Course
             </>
           )}
         </Button>
@@ -1132,8 +1200,9 @@ export default function AdminCourseDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardContent className="pt-6">
+                {/* Tiêu đề đã được đổi thành Trainers */}
                 <PeopleList
-                  title="Supervisors"
+                  title="Trainers"
                   type="Supervisor"
                   data={supervisorList}
                   onAdd={handleAddSupervisor}

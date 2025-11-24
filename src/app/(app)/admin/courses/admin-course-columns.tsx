@@ -4,7 +4,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { type DashboardCourse } from "@/types/course";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  Calendar,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  ExternalLink,
+} from "lucide-react";
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,9 +22,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// Giả sử bạn có component này, nếu chưa thì thay bằng div tạm
-import { CourseDetailDialog } from "@/components/CourseDetailDialog";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { adminApi } from "@/lib/adminApi";
+import Link from "next/link";
 
 // --- Helpers ---
 const getInitials = (name: string) => {
@@ -63,8 +71,77 @@ const StatusBadge = ({ status }: { status: number }) => {
   }
 };
 
+// --- COMPONENT: ACTION CELL ---
+const ActionCell = ({ course }: { course: DashboardCourse }) => {
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to delete: "${course.name}"?`)) {
+      return;
+    }
+    const toastId = toast.loading("Deleting course...");
+    try {
+      await adminApi.deleteCourse(course.id);
+      toast.success("Course deleted successfully", { id: toastId });
+      window.location.reload();
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete course", { id: toastId });
+    }
+  };
+
+  const handleEdit = () => {
+    // --- SỬA TẠI ĐÂY: Chuyển hướng kèm query param ?edit=true ---
+    router.push(`/admin/courses/${course.id}?edit=true`);
+  };
+
+  return (
+    <div className="flex justify-end items-center gap-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          >
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Admin Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/admin/courses/${course.id}`}
+              className="cursor-pointer w-full flex items-center text-primary font-medium focus:text-primary focus:bg-primary/10"
+            >
+              <ExternalLink className="mr-2 h-4 w-4" /> View Details
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+            <Edit className="mr-2 h-4 w-4" /> Edit Course
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              handleDelete();
+            }}
+            className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 cursor-pointer"
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> Delete Course
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
+
 export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
-  // --- Course Name ---
   {
     accessorKey: "name",
     header: "Course Name",
@@ -97,7 +174,6 @@ export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
       );
     },
   },
-  // --- Duration ---
   {
     accessorKey: "start_date",
     header: "Duration",
@@ -116,13 +192,12 @@ export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
       );
     },
   },
-  // --- Status ---
   {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    filterFn: "equals",
   },
-  // --- Trainers Count ---
   {
     accessorKey: "supervisor_count",
     header: ({ column }) => (
@@ -136,7 +211,6 @@ export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
       </div>
     ),
   },
-  // --- Trainees Count ---
   {
     accessorKey: "member_count",
     header: ({ column }) => (
@@ -150,62 +224,9 @@ export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
       </div>
     ),
   },
-
-  // --- ACTIONS ---
   {
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => {
-      const course = row.original;
-
-      // Hàm xử lý khi click delete
-      const handleDelete = (id: number) => {
-        console.log("Delete course ID:", id);
-        toast.info(`Delete functionality for course #${id} triggered`);
-      };
-
-      // Hàm xử lý khi click edit
-      const handleEdit = (id: number) => {
-        console.log("Edit course ID:", id);
-        // router.push(`/admin/courses/${id}/edit`)
-        toast.info(`Edit functionality for course #${id} triggered`);
-      };
-
-      return (
-        <div className="flex justify-end items-center gap-1">
-          {/* View Detail Trigger */}
-          <div title="View Details">
-            <CourseDetailDialog course={course} />
-          </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-              >
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuLabel>Admin Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => handleEdit(course.id)}>
-                <Edit className="mr-2 h-4 w-4" /> Edit Course
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => handleDelete(course.id)}
-                className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20"
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
+    cell: ({ row }) => <ActionCell course={row.original} />,
   },
 ];

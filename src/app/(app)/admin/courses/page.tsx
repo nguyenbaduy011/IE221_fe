@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DashboardCourse } from "@/types/course";
-import { adminApi } from "@/lib/adminApi"; // Import API mới
-
-// Import component bảng đã đổi tên và cột mới
-
+import { adminApi } from "@/lib/adminApi";
 import Link from "next/link";
 import { CourseDataTable } from "./course-data-table";
 import { getAdminColumns } from "./admin-course-columns";
@@ -19,12 +16,28 @@ export default function AdminCourseManagementPage() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      // Gọi API của Admin để lấy tất cả khóa học
-      const data = await adminApi.getAllCourses();
-      setCourses(data);
+      // Gọi API
+      const response = await adminApi.getAllCourses();
+
+      // --- FIX LOGIC LẤY DATA ---
+      // Axios trả về object response, dữ liệu thực nằm trong response.data
+      const payload = (response as any).data || response;
+
+      // Log để kiểm tra (bạn có thể xóa sau khi chạy đúng)
+      console.log("Courses Payload:", payload);
+
+      if (payload && Array.isArray(payload.data)) {
+        // Trường hợp chuẩn: { status: "success", data: [ ... ] }
+        setCourses(payload.data);
+      } else if (Array.isArray(payload)) {
+        // Trường hợp: [ ... ]
+        setCourses(payload);
+      } else {
+        console.warn("Unexpected data structure:", payload);
+        setCourses([]);
+      }
     } catch (error) {
       console.error("Failed to fetch courses for admin:", error);
-      // Có thể thêm toast notification lỗi ở đây
     } finally {
       setLoading(false);
     }
@@ -62,7 +75,7 @@ export default function AdminCourseManagementPage() {
             </p>
           </div>
 
-          {/* NÚT TẠO KHÓA HỌC (Dành cho Admin) */}
+          {/* NÚT TẠO KHÓA HỌC */}
           <Button asChild className="shrink-0 shadow-sm">
             <Link href="/admin/courses/create">
               <Plus className="w-5 h-5 mr-2" />
@@ -71,7 +84,7 @@ export default function AdminCourseManagementPage() {
           </Button>
         </div>
 
-        {/* TABLE SECTION (Không có Stats) */}
+        {/* TABLE SECTION */}
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border bg-muted/20">
             <h2 className="text-lg font-semibold text-foreground">
@@ -79,7 +92,6 @@ export default function AdminCourseManagementPage() {
             </h2>
           </div>
           <div className="p-6">
-            {/* Sử dụng bảng chung với cột của admin */}
             <CourseDataTable columns={getAdminColumns} data={courses} />
           </div>
         </div>
