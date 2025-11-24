@@ -98,12 +98,8 @@ export const adminApi = {
 
   // 7. ADD TASK (Fix lỗi dấu +)
   addTask(courseId: number, courseSubjectId: number, taskName: string) {
-    // Lưu ý: Backend bạn định nghĩa url_path="add-task" trong ViewSet "courses"
-    // Nên URL thường là /api/courses/{id}/add-task/ hoặc /api/admin/courses/{id}/add-task/
-    // tuỳ thuộc vào router register của bạn.
-    // Dựa vào code urls.py bạn gửi trước đó, bạn register router 'courses'
     return axiosClient.post(`/api/admin/courses/${courseId}/add-task/`, {
-      course_subject_id: courseSubjectId,
+      course_subject_id: courseSubjectId, // Phải khớp với request.data.get bên backend
       name: taskName,
     });
   },
