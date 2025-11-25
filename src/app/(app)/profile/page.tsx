@@ -73,9 +73,10 @@ export default function ProfilePage() {
     },
   });
 
+  // --- SỬA ĐỔI QUAN TRỌNG: Cập nhật form khi có user data ---
   useEffect(() => {
     if (user) {
-      console.log("Current User Data:", user);
+      console.log("User data loaded into Form:", user);
 
       profileForm.reset({
         fullName: user.full_name || "",
@@ -91,12 +92,11 @@ export default function ProfilePage() {
   const onUpdateProfile = async (data: UpdateProfileFormValues) => {
     setIsUpdating(true);
     try {
-      const res = await authApi.updateProfile({
+      // Khi gửi lên, birthday rỗng ("") nên gửi là null để backend không lỗi date format
+      await authApi.updateProfile({
         ...data,
-        birthday: data.birthday || null,
+        birthday: data.birthday ? data.birthday : null,
       });
-
-      console.log(res);
 
       await refreshUser();
       toast.success("Profile updated successfully!");
@@ -290,6 +290,7 @@ export default function ProfilePage() {
                       />
 
                       <div className="grid gap-6 sm:grid-cols-2">
+                        {/* Gender Select */}
                         <FormField
                           control={profileForm.control}
                           name="gender"
@@ -300,9 +301,11 @@ export default function ProfilePage() {
                               </FormLabel>
                               <Select
                                 onValueChange={field.onChange}
+                                // Ép kiểu về string để khớp với value của SelectItem
                                 value={
                                   field.value ? String(field.value) : undefined
                                 }
+                                // QUAN TRỌNG: Thêm key để ép re-render khi giá trị thay đổi
                                 key={field.value}
                               >
                                 <FormControl>
@@ -311,6 +314,7 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
+                                  {/* Value phải là string */}
                                   <SelectItem value="1">Male</SelectItem>
                                   <SelectItem value="2">Female</SelectItem>
                                   <SelectItem value="3">Other</SelectItem>
@@ -334,6 +338,7 @@ export default function ProfilePage() {
                                 <Input
                                   type="date"
                                   {...field}
+                                  // Xử lý null/undefined thành chuỗi rỗng
                                   value={field.value || ""}
                                   className="h-10"
                                 />
@@ -454,7 +459,9 @@ export default function ProfilePage() {
                                 {[0, 1, 2, 3].map((i) => (
                                   <div
                                     key={i}
-                                    className={`h-2 flex-1 rounded-full transition-colors duration-300 ${getStrengthColor(i)}`}
+                                    className={`h-2 flex-1 rounded-full transition-colors duration-300 ${getStrengthColor(
+                                      i
+                                    )}`}
                                   />
                                 ))}
                               </div>
@@ -519,7 +526,7 @@ export default function ProfilePage() {
                     <Button
                       type="submit"
                       disabled={isChangingPass}
-                      className="w-full sm:w-auto h-10"
+                      className="w-full sm:w-auto h-10 cursor-pointer"
                     >
                       {isChangingPass ? (
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
