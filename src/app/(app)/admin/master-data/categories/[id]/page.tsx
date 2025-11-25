@@ -45,7 +45,6 @@ export default function CategoryDetailPage() {
   }, [params.id]);
 
   const handleUpdateSuccess = () => {
-    // Redirect back to list after update or just refresh
     router.push("/admin/master-data/categories");
   };
 

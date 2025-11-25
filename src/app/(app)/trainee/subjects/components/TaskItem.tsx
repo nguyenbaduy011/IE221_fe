@@ -1,4 +1,3 @@
-// src/app/(app)/trainee/subjects/[id]/_components/TaskItem.tsx
 "use client";
 
 import { useState } from "react";
@@ -19,7 +18,6 @@ type Props = {
 export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
   const [isUploading, setIsUploading] = useState(false);
 
-  // Xử lý update status (Checkbox)
   const handleCheck = async (checked: boolean) => {
     try {
       const formData = new FormData();
@@ -31,15 +29,12 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
     }
   };
 
-  // Xử lý update hours (Input onBlur)
   const handleHoursBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     let val = parseFloat(e.target.value);
-    if (isNaN(val) || val < 0) return; // Basic validation
-    
-    // Auto round to 1 decimal
+    if (isNaN(val) || val < 0) return;
+
     val = Math.round(val * 10) / 10;
 
-    // Chỉ gọi API nếu giá trị thay đổi
     if (val !== task.spent_time) {
       try {
         const formData = new FormData();
@@ -52,7 +47,6 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
     }
   };
 
-  // Xử lý Upload file
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -74,8 +68,8 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800/50">
       <div className="flex items-center gap-3 flex-1">
-        <Checkbox 
-          checked={task.status === TaskStatus.DONE} 
+        <Checkbox
+          checked={task.status === TaskStatus.DONE}
           onCheckedChange={handleCheck}
           disabled={disabled}
           className="w-5 h-5"
@@ -88,11 +82,11 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
       <div className="flex items-center gap-3">
         {/* Upload Button */}
         <div className="relative">
-           <input 
-             type="file" 
-             id={`file-${task.id}`} 
-             className="hidden" 
-             onChange={handleFileChange} 
+           <input
+             type="file"
+             id={`file-${task.id}`}
+             className="hidden"
+             onChange={handleFileChange}
              disabled={disabled || isUploading}
            />
            <label htmlFor={`file-${task.id}`}>
@@ -104,7 +98,7 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
              </Button>
            </label>
         </div>
-        
+
         {/* Link to file if exists */}
         {task.submission_file && (
             <a href={task.submission_file} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
@@ -115,8 +109,8 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
         {/* Hours Input */}
         <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 whitespace-nowrap">Hours:</span>
-            <Input 
-                type="number" 
+            <Input
+                type="number"
                 step="0.1"
                 defaultValue={task.spent_time ?? ""}
                 onBlur={handleHoursBlur}

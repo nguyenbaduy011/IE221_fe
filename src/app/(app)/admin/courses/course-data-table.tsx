@@ -29,7 +29,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-// import { CourseStatus } from "@/types/course"; // Có thể import hoặc hardcode giá trị 0,1,2
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -61,9 +60,8 @@ export function CourseDataTable<TData, TValue>({
     },
   });
 
-  // --- LOGIC MỚI ĐỂ LẤY GIÁ TRỊ FILTER ---
   const statusFilterValue = table.getColumn("status")?.getFilterValue();
-  // Chuyển đổi số sang chuỗi để Select UI hiểu được (đặc biệt là số 0)
+
   const currentStatusValue =
     statusFilterValue !== undefined ? String(statusFilterValue) : "ALL";
 
@@ -87,15 +85,12 @@ export function CourseDataTable<TData, TValue>({
             />
           </div>
 
-          {/* FILTER BY STATUS (ĐÃ SỬA) */}
           <Select
             value={currentStatusValue}
             onValueChange={(value) => {
               if (value === "ALL") {
                 table.getColumn("status")?.setFilterValue(undefined);
               } else {
-                // Quan trọng: Chuyển về Number để so sánh với dữ liệu (0, 1, 2)
-                // Kết hợp với filterFn: "equals" ở file columns sẽ hoạt động đúng.
                 table.getColumn("status")?.setFilterValue(Number(value));
               }
             }}
@@ -105,7 +100,6 @@ export function CourseDataTable<TData, TValue>({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Status</SelectItem>
-              {/* Dùng string "0", "1", "2" cho value của SelectItem */}
               <SelectItem value="0">Not Started</SelectItem>
               <SelectItem value="1">In Progress</SelectItem>
               <SelectItem value="2">Finished</SelectItem>

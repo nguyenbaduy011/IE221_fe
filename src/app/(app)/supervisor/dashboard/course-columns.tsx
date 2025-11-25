@@ -48,7 +48,7 @@ const StatusBadge = ({ status }: { status: number }) => {
 };
 
 export const getColumns: ColumnDef<DashboardCourse>[] = [
-  // Cột Name: Avatar + Name (có HoverCard + Truncate)
+
   {
     accessorKey: "name",
     header: "Course Name",
@@ -137,7 +137,7 @@ export const getColumns: ColumnDef<DashboardCourse>[] = [
     },
   },
 
-  // Cột Duration
+
   {
     accessorKey: "start_date",
     header: "Duration",
@@ -159,17 +159,16 @@ export const getColumns: ColumnDef<DashboardCourse>[] = [
     },
   },
 
-  // Cột Status
   {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
 
-  // --- CỘT TRAINERS (MỚI THÊM) ---
+
   {
     accessorKey: "supervisor_count",
-    header: ({ column }) => <div className="text-center">Trainers</div>,
+    header: () => <div className="text-center">Trainers</div>,
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
@@ -178,11 +177,10 @@ export const getColumns: ColumnDef<DashboardCourse>[] = [
       </div>
     ),
   },
-  // ------------------------------
 
   {
     accessorKey: "member_count",
-    header: ({ column }) => <div className="text-center">Trainees</div>,
+    header: () => <div className="text-center">Trainees</div>,
     cell: ({ row }) => (
       <div className="flex justify-center">
         <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
@@ -192,7 +190,6 @@ export const getColumns: ColumnDef<DashboardCourse>[] = [
     ),
   },
 
-  // Cột View Action
   {
     id: "actions",
     header: () => <div className="text-right pr-2">View</div>,

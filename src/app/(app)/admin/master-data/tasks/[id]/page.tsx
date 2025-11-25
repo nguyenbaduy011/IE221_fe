@@ -44,13 +44,7 @@ export default function TaskDetailPage() {
   }, [params.id]);
 
   const handleUpdateSuccess = () => {
-    // Refresh data or redirect to list
     toast.success("Task updated successfully");
-    // Option 1: Stay on page and switch to view mode
-    // setIsEditing(false);
-    // fetchData();
-
-    // Option 2: Redirect to list (as per original code)
     router.push("/admin/master-data/tasks");
   };
 

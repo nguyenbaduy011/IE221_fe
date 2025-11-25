@@ -1,7 +1,5 @@
-// src/validations/authValidation.ts
 import { z } from "zod";
 
-// Login schema
 export const loginSchema = z.object({
   email: z.email("Email không hợp lệ"),
   password: z.string(),

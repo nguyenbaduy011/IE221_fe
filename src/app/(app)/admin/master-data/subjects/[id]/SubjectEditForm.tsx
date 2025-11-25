@@ -52,7 +52,6 @@ export default function SubjectEditForm({
   });
 
   const onSubmit = async (values: SubjectFormValues) => {
-    // Validate: Check duplicate task names locally
     const taskNames = values.tasks?.map((t) => t.name.trim().toLowerCase());
     const hasDuplicate = taskNames?.some(
       (name, index) => taskNames.indexOf(name) !== index
@@ -79,10 +78,8 @@ export default function SubjectEditForm({
       );
       toast.success("Subject updated successfully");
 
-      // Call onSuccess callback
       onSuccess();
 
-      // Redirect to list
       router.push("/admin/master-data/subjects");
     } catch (error: any) {
       const msg = error.response?.data?.message || "Failed to update subject";

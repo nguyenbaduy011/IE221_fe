@@ -32,11 +32,10 @@ export default function NewCategoryPage() {
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
-      subject_categories: [{ subject_id: "" }], // Default 1 empty row
+      subject_categories: [{ subject_id: "" }],
     },
   });
 
-  // Load master data Subject
   useEffect(() => {
     axiosClient
       .get("/api/supervisor/subjects/")
@@ -50,7 +49,6 @@ export default function NewCategoryPage() {
   const onSubmit = async (values: CategoryFormValues) => {
     const payload = {
       name: values.name,
-      // Map form values to API structure
       subject_categories: values.subject_categories.map((item) => ({
         subject_id: Number(item.subject_id),
       })),

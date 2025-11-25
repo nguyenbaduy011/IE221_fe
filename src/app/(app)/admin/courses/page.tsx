@@ -16,21 +16,15 @@ export default function AdminCourseManagementPage() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      // Gọi API
       const response = await adminApi.getAllCourses();
 
-      // --- FIX LOGIC LẤY DATA ---
-      // Axios trả về object response, dữ liệu thực nằm trong response.data
       const payload = (response as any).data || response;
 
-      // Log để kiểm tra (bạn có thể xóa sau khi chạy đúng)
       console.log("Courses Payload:", payload);
 
       if (payload && Array.isArray(payload.data)) {
-        // Trường hợp chuẩn: { status: "success", data: [ ... ] }
         setCourses(payload.data);
       } else if (Array.isArray(payload)) {
-        // Trường hợp: [ ... ]
         setCourses(payload);
       } else {
         console.warn("Unexpected data structure:", payload);
@@ -63,7 +57,6 @@ export default function AdminCourseManagementPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* HEADER SECTION */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
@@ -75,7 +68,6 @@ export default function AdminCourseManagementPage() {
             </p>
           </div>
 
-          {/* NÚT TẠO KHÓA HỌC */}
           <Button asChild className="shrink-0 shadow-sm">
             <Link href="/admin/courses/create">
               <Plus className="w-5 h-5 mr-2" />
@@ -84,7 +76,6 @@ export default function AdminCourseManagementPage() {
           </Button>
         </div>
 
-        {/* TABLE SECTION */}
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border bg-muted/20">
             <h2 className="text-lg font-semibold text-foreground">

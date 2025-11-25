@@ -1,4 +1,3 @@
-// src/app/(app)/layout.tsx
 "use client";
 
 import Header from "@/components/Header";
@@ -11,7 +10,7 @@ export default function TraineeLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  const shouldShow = !!user; // Chỉ show header/sidebar nếu có user
+  const shouldShow = !!user;
 
   return (
     <div>

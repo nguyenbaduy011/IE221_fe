@@ -1,4 +1,3 @@
-// src/app/(app)/trainee/subjects/[id]/_components/Assessments.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Comment } from "@/types/subject";
 import { format } from "date-fns";
@@ -13,7 +12,7 @@ export default function Assessments({ score, maxScore, comments }: Props) {
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm space-y-4">
       <h3 className="text-lg font-bold border-b pb-2 dark:border-gray-700">Assessments</h3>
-      
+
       {/* Score */}
       <div className="text-base font-medium">
         Score: <span className="text-blue-600 font-bold text-lg">{score ?? "--"}</span>
@@ -23,7 +22,7 @@ export default function Assessments({ score, maxScore, comments }: Props) {
       {/* Comments List */}
       <div className="space-y-4 pt-2">
         {comments.length === 0 && <p className="text-gray-500 italic text-sm">No comments yet.</p>}
-        
+
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <Avatar className="w-10 h-10">

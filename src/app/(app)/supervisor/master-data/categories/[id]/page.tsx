@@ -44,7 +44,6 @@ export default function CategoryDetailPage() {
   }, [params.id]);
 
   const handleUpdateSuccess = () => {
-    // Redirect back to list after update
     router.push("/supervisor/master-data/categories");
   };
 

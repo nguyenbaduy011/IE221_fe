@@ -31,7 +31,6 @@ import { userApi } from "@/lib/userApi";
 import { User } from "@/types/user";
 import dayjs from "dayjs";
 
-// Import UI
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +48,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// --- TYPES ---
 type EditableSubjectField =
   | "estimated_time_days"
   | "name"
@@ -63,7 +61,6 @@ interface CourseEditForm {
   link_to_course: string;
 }
 
-// --- COMPONENT: USER SEARCH DIALOG ---
 const UserSearchDialog = ({
   isOpen,
   onClose,
@@ -82,7 +79,6 @@ const UserSearchDialog = ({
   const [isSearching, setIsSearching] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
-  // Biến hiển thị: Nếu là Supervisor thì hiện chữ "Trainer"
   const displayLabel = type === "Supervisor" ? "Trainer" : type;
 
   useEffect(() => {
@@ -129,7 +125,6 @@ const UserSearchDialog = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          {/* Cập nhật tiêu đề Dialog */}
           <DialogTitle>Add {displayLabel}</DialogTitle>
           <DialogDescription>
             Search for a {displayLabel.toLowerCase()} by name or email.
@@ -195,7 +190,6 @@ const UserSearchDialog = ({
   );
 };
 
-// --- COMPONENT: PEOPLE LIST ---
 const PeopleList = ({
   title,
   data,
@@ -212,7 +206,6 @@ const PeopleList = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const safeData = Array.isArray(data) ? data : [];
 
-  // Biến hiển thị: Nếu là Supervisor thì hiện chữ "Trainer"
   const displayLabel = type === "Supervisor" ? "Trainer" : type;
 
   const existingIds = useMemo(() => {
@@ -274,7 +267,6 @@ const PeopleList = ({
   );
 };
 
-// --- COMPONENT: SUBJECTS TAB ---
 interface SubjectsTabProps {
   courseId: number;
   isEditing: boolean;
@@ -883,7 +875,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
   );
 };
 
-// --- 4. MAIN PAGE ---
 export default function AdminCourseDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -902,7 +893,6 @@ export default function AdminCourseDetailPage() {
     link_to_course: "",
   });
 
-  // Logic kiểm tra edit mode
   useEffect(() => {
     if (searchParams.get("edit") === "true") {
       setIsEditing(true);
@@ -917,7 +907,6 @@ export default function AdminCourseDetailPage() {
         adminApi.getTrainees(courseId),
       ]);
 
-      // Xử lý Course Data
       const courseBody = courseRes.data as any;
       let actualCourseData =
         courseBody && courseBody.data && !courseBody.id
@@ -938,7 +927,6 @@ export default function AdminCourseDetailPage() {
       }
       setCourse(actualCourseData);
 
-      // Xử lý Trainee Data
       const traineesBody = traineesRes.data as any;
       let actualTraineesData: User[] = [];
       if (Array.isArray(traineesBody)) {
@@ -1053,7 +1041,6 @@ export default function AdminCourseDetailPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6 pb-24">
-      {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-foreground">Course Detail</h1>
         <Button
@@ -1072,7 +1059,6 @@ export default function AdminCourseDetailPage() {
         </Button>
       </div>
 
-      {/* INFO CARD */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -1155,7 +1141,6 @@ export default function AdminCourseDetailPage() {
         </CardContent>
       </Card>
 
-      {/* TABS */}
       <div className="w-full">
         <div className="grid w-full grid-cols-2 bg-muted p-1 rounded-lg mb-4">
           <button
@@ -1184,7 +1169,6 @@ export default function AdminCourseDetailPage() {
           </button>
         </div>
 
-        {/* Tab Contents */}
         {activeTab === "subjects" && (
           <Card>
             <CardHeader>
@@ -1200,7 +1184,6 @@ export default function AdminCourseDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardContent className="pt-6">
-                {/* Tiêu đề đã được đổi thành Trainers */}
                 <PeopleList
                   title="Trainers"
                   type="Supervisor"
@@ -1225,7 +1208,6 @@ export default function AdminCourseDetailPage() {
         )}
       </div>
 
-      {/* FLOATING SAVE BUTTON (CHỈ HIỆN KHI EDITING) */}
       {isEditing && (
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 flex justify-end gap-4 shadow-lg z-50">
           <div className="container max-w-5xl flex justify-end">

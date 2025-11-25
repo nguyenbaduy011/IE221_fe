@@ -73,7 +73,6 @@ interface PageProps {
 export default function TraineeSubjectDetailPage({ params }: PageProps) {
   const { courseId, subjectId } = use(params);
 
-  // --- STATES ---
   const [students, setStudents] = useState<Trainee[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
     null
@@ -88,7 +87,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
   const [comment, setComment] = useState<string>("");
   const [isEditingAssessment, setIsEditingAssessment] = useState(false);
 
-  // --- FETCH DATA ---
   const fetchSubjectDetail = useCallback(async () => {
     if (!selectedStudentId) return;
 
@@ -100,7 +98,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
       );
 
       let finalData = res as any;
-      // Bóc tách dữ liệu
       while (finalData && finalData.data && !finalData.id) {
         finalData = finalData.data;
       }
@@ -171,7 +168,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
     }
   }, [subjectData]);
 
-  // --- COMPUTED ---
   const progressPercent = useMemo(() => {
     if (!subjectData || !subjectData.tasks || subjectData.tasks.length === 0) {
       return 0;
@@ -187,7 +183,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
     [students, selectedStudentId]
   );
 
-  // --- HELPER: GET BADGE COLOR ---
   const getScoreBadgeVariant = (s: number | null | undefined, max: number) => {
     if (s === null || s === undefined)
       return "bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/25 border-yellow-200";
@@ -202,7 +197,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
     return "Failed";
   };
 
-  // --- HANDLERS ---
   const handleCompleteSubject = async () => {
     if (!subjectData) return;
     setIsSaving(true);
@@ -617,7 +611,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
 
               <CardContent className="pt-8">
                 {isEditingAssessment ? (
-                  // --- CHẾ ĐỘ EDIT ---
                   <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                       <div className="md:col-span-1 space-y-2">
@@ -675,7 +668,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
                     </div>
                   </div>
                 ) : (
-                  // --- CHẾ ĐỘ VIEW (MÀU SẮC) ---
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="flex items-center gap-6 p-8 bg-linear-to-br from-primary/10 to-primary/5 rounded-xl border-2 border-primary/20">
@@ -749,7 +741,6 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
   );
 }
 
-// --- ADD TASK DIALOG (Giữ nguyên như cũ) ---
 function AddTaskDialog({
   onAdd,
   isLoading,

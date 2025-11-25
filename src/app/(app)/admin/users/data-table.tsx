@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 
 import { User } from "@/types/user";
-import { BulkActionConfirmDialog } from "@/components/BulkActionConfirmDialog"; // import dialog mới
+import { BulkActionConfirmDialog } from "@/components/BulkActionConfirmDialog";
 
 export type FilterState = {
   search: string;
@@ -71,7 +71,6 @@ export function DataTable({
   const showBulkActivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => !u.is_active);
 
-  // STATE DIALOG
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [dialogAction, setDialogAction] = React.useState<
     "activate" | "deactivate"

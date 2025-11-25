@@ -18,7 +18,6 @@ export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Đảm bảo chỉ render icon khi component đã được mount client-side
   useEffect(() => {
     setMounted(true);
   }, []);

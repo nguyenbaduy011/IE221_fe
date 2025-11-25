@@ -35,7 +35,6 @@ export default function CategoryEditForm({
   onCancel,
   onSuccess,
 }: Props) {
-  // Transform API data to Form Values
   const defaultValues: CategoryFormValues = {
     name: initialData.name,
     subject_categories:
@@ -73,7 +72,6 @@ export default function CategoryEditForm({
         typeof error.response.data === "object" &&
         !error.response.data.message
       ) {
-        // Handle Django validation errors object
         toast.error(`Error: ${JSON.stringify(error.response.data)}`);
       } else {
         toast.error(msg);

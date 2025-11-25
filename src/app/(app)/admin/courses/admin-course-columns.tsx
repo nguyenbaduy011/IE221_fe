@@ -27,7 +27,6 @@ import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/adminApi";
 import Link from "next/link";
 
-// --- Helpers ---
 const getInitials = (name: string) => {
   return name
     .split(" ")
@@ -71,7 +70,6 @@ const StatusBadge = ({ status }: { status: number }) => {
   }
 };
 
-// --- COMPONENT: ACTION CELL ---
 const ActionCell = ({ course }: { course: DashboardCourse }) => {
   const router = useRouter();
 
@@ -91,7 +89,6 @@ const ActionCell = ({ course }: { course: DashboardCourse }) => {
   };
 
   const handleEdit = () => {
-    // --- SỬA TẠI ĐÂY: Chuyển hướng kèm query param ?edit=true ---
     router.push(`/admin/courses/${course.id}?edit=true`);
   };
 

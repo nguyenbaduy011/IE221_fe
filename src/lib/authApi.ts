@@ -1,4 +1,3 @@
-// lib/authApi.ts
 import { AuthLoginResponse, AuthRegisterResponse } from "@/types/user";
 import axiosClient from "./axiosClient";
 
@@ -47,7 +46,6 @@ export const authApi = {
   },
 
   activate(uidb64: string, token: string) {
-    // Gọi đến API GET /auth/activate/<uid>/<token>/ của Django
     return axiosClient.get(`/auth/activate/${uidb64}/${token}/`);
   },
 

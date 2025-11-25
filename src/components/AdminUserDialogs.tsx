@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "./ui/textarea";
 
-// --- Dialog Tạo User ---
 interface CreateUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -61,7 +60,6 @@ export function CreateUserDialog({
     },
   });
 
-  // Reset form khi mở dialog
   React.useEffect(() => {
     if (open) {
       form.reset({
@@ -170,7 +168,6 @@ export function CreateUserDialog({
   );
 }
 
-// --- Dialog Sửa User ---
 interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -198,10 +195,8 @@ export function EditUserDialog({
     },
   });
 
-  // Load dữ liệu user vào form khi mở dialog
   React.useEffect(() => {
     if (user && open) {
-      // Convert gender số sang string cho Select
       let genderStr: "1" | "2" | "unknown" = "unknown";
       if (user.gender === 1) genderStr = "1";
       if (user.gender === 2) genderStr = "2";
@@ -220,11 +215,9 @@ export function EditUserDialog({
   const handleSubmit = (values: UpdateUserFormValues) => {
     if (!user) return;
 
-    // Convert gender từ string UI về number/null API
     let genderPayload: number | null = null;
     if (values.gender === "1") genderPayload = 1;
     if (values.gender === "2") genderPayload = 2;
-    // "unknown" sẽ là null
 
     onSubmit(user.id, {
       email: values.email,
@@ -354,7 +347,7 @@ export function EditUserDialog({
                     <FormLabel>Gender</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value} // Dùng value thay vì defaultValue để sync với reset()
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>

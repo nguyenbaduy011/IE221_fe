@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 
 import { User } from "@/types/user";
-import { BulkActionConfirmDialog } from "@/components/BulkActionConfirmDialog"; // import dialog mới
+import { BulkActionConfirmDialog } from "@/components/BulkActionConfirmDialog";
 
 export type SupervisorFilterState = {
   search: string;
@@ -71,7 +71,6 @@ export function SupervisorDataTable({
   const showBulkActivate =
     selectedUsers.length > 0 && selectedUsers.every((u) => !u.is_active);
 
-  // State để mở dialog
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [dialogAction, setDialogAction] = React.useState<
     "activate" | "deactivate"

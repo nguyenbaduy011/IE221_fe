@@ -1,7 +1,6 @@
-// src/lib/subjectApi.ts
 import { TaskStatus, Trainee } from "@/types/subjectDetails";
 import axiosClient from "./axiosClient";
-import { ApiResponse } from "./userApi"; 
+import { ApiResponse } from "./userApi";
 import { SubjectDetail, Task } from "@/types/subject";
 
 export const subjectApi = {
@@ -23,14 +22,12 @@ export const subjectApi = {
     );
   },
 
-  // --- Thêm task cho subject ---
   addTask(subjectId: string, taskName: string) {
     return axiosClient.post(`/api/supervisor/subjects/${subjectId}/tasks/`, {
       name: taskName,
     });
   },
 
-  // --- Thay đổi trạng thái task ---
   toggleTask(taskId: number, status: TaskStatus) {
     return axiosClient.patch(`/api/supervisor/tasks/${taskId}/`, {
       status: status,

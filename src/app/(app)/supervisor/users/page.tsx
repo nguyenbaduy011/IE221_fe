@@ -4,7 +4,7 @@
 
 import * as React from "react";
 import { User } from "@/types/user";
-import { userApi } from "@/lib/userApi"; // Đảm bảo userApi có hàm bulkDeactivate, bulkActivate
+import { userApi } from "@/lib/userApi";
 import { SupervisorDataTable, SupervisorFilterState } from "./data-table";
 import { getSupervisorColumns } from "./columns";
 import { toast } from "sonner";
@@ -20,9 +20,7 @@ export default function SupervisorUserPage() {
     status: "ALL",
   });
 
-  // Fetch data
-  // Backend (UserViewSet) sẽ tự động loại bỏ ADMIN khi user gọi là SUPERVISOR
-  const fetchUsers = async () => {
+  const fetchUsers = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -38,16 +36,15 @@ export default function SupervisorUserPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
       fetchUsers();
     }, 500);
     return () => clearTimeout(timer);
-  }, [filter]);
+  }, [fetchUsers]);
 
-  // Xử lý Khóa/Mở khóa từng user
   const handleToggleStatus = async (user: User) => {
     try {
       if (user.is_active) {
@@ -59,7 +56,6 @@ export default function SupervisorUserPage() {
       }
       fetchUsers();
     } catch (err: any) {
-      // Nếu backend trả về lỗi 403 (ví dụ cố tình deactivate Admin bằng API)
       if (err.response && err.response.status === 403) {
         toast.error("Permission denied: Cannot modify this user");
       } else {
@@ -68,10 +64,8 @@ export default function SupervisorUserPage() {
     }
   };
 
-  // Xử lý Bulk Deactivate
   const handleBulkDeactivate = async (ids: number[]) => {
     try {
-      // Giả sử API nhận payload { ids: number[] }
       await userApi.bulkDeactivate(ids);
       toast.success(`Deactivated ${ids.length} users successfully`);
       fetchUsers();
@@ -80,10 +74,8 @@ export default function SupervisorUserPage() {
     }
   };
 
-  // Xử lý Bulk Activate
   const handleBulkActivate = async (ids: number[]) => {
     try {
-      // Giả sử API nhận payload { ids: number[] }
       await userApi.bulkActivate(ids);
       toast.success(`Activated ${ids.length} users successfully`);
       fetchUsers();

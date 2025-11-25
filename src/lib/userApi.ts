@@ -52,8 +52,6 @@ export const userApi = {
     );
   },
 
-  // --- XÓA HÀM DELETE ĐƠN LẺ VÀ BULK DELETE CŨ ---
-
   deactivate(id: number) {
     return axiosClient.post<ApiResponse<null>>(
       `/api/admin/users/${id}/deactivate/`
@@ -66,7 +64,6 @@ export const userApi = {
     );
   },
 
-  // --- Bulk actions MỚI ---
   bulkAdd(data: { emails: string[]; role?: UserRole }) {
     return axiosClient.post<ApiResponse<User[]>>(
       "/api/admin/users/bulk_add/",

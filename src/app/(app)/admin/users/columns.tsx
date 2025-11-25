@@ -19,7 +19,6 @@ export const getColumns = (
   onEdit: (user: User) => void,
   sessionUser: User | null
 ): ColumnDef<User>[] => [
-  // Select
   {
     id: "select",
     header: ({ table }) => (
@@ -48,7 +47,6 @@ export const getColumns = (
     size: 50,
   },
 
-  // ID
   {
     accessorKey: "id",
     header: "ID",
@@ -63,7 +61,7 @@ export const getColumns = (
   {
     accessorKey: "full_name",
     header: "Name",
-    size: 160, // cố định chiều rộng
+    size: 160,
     cell: ({ row }) => {
       const user = row.original;
       return (
@@ -101,11 +99,10 @@ export const getColumns = (
     },
   },
 
-  // Email column
   {
     accessorKey: "email",
     header: "Contact",
-    size: 200, // cố định chiều rộng
+    size: 200,
     cell: ({ row }) => {
       const user = row.original;
       return (
@@ -124,37 +121,37 @@ export const getColumns = (
           <HoverCardContent className="w-80 p-0 border border-border/50 shadow-lg">
             <div className="bg-background p-4 space-y-4">
               <div className="space-y-3">
-                
+
                 <div>
-                  
+
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-1.5">
-                    
+
                     Email
                   </p>
                   <p className="text-sm font-semibold break-all text-foreground">
-                    
+
                     {user.email}
                   </p>
                 </div>
                 <div className="border-t border-border/30 pt-3">
-                  
+
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-1.5">
-                    
+
                     Joined
                   </p>
                   <p className="text-sm text-foreground/80">
-                    
+
                     {dayjs(user.date_joined).format("DD/MM/YYYY HH:mm")}
                   </p>
                 </div>
                 <div className="border-t border-border/30 pt-3">
-                  
+
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-1.5">
-                    
+
                     Gender
                   </p>
                   <p className="text-sm text-foreground/80">
-                    
+
                     {user.gender === 1
                       ? "Male"
                       : user.gender === 2
@@ -163,13 +160,13 @@ export const getColumns = (
                   </p>
                 </div>
                 <div className="border-t border-border/30 pt-3">
-                  
+
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 mb-1.5">
-                    
+
                     Birthday
                   </p>
                   <p className="text-sm text-foreground/80">
-                    
+
                     {user.birthday
                       ? dayjs(user.birthday).format("DD/MM/YYYY")
                       : "—"}
@@ -182,7 +179,7 @@ export const getColumns = (
       );
     },
   },
-  // Status
+
   {
     accessorKey: "is_active",
     header: "Status",

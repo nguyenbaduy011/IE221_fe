@@ -2,7 +2,6 @@ import axiosClient from "@/lib/axiosClient";
 import { DashboardCourse, DashboardStats } from "@/types/course";
 import { User } from "@/types/user";
 
-// --- INTERFACES ---
 export interface Task {
   id: number;
   name: string;
@@ -17,13 +16,12 @@ export interface Subject {
 
 export interface CreateCoursePayload {
   name: string;
-  start_date: string; // Format: YYYY-MM-DD
-  finish_date: string; // Format: YYYY-MM-DD
+  start_date: string;
+  finish_date: string;
   link_to_course?: string;
-  image?: File | null; // Sử dụng kiểu File cho upload ảnh
-  status?: number; // 0: Not Started, 1: In Progress...
+  image?: File | null;
+  status?: number;
 
-  // Danh sách ID (nếu tạo luôn môn học/supervisor kèm theo)
   subjects?: number[];
   supervisors?: number[];
 }
@@ -47,9 +45,7 @@ export interface AdminCourseDetail extends DashboardCourse {
   supervisors: { id: number; supervisor: User }[];
 }
 
-// --- ADMIN API OBJECT ---
 export const adminApi = {
-  // ... (Giữ nguyên các hàm cũ: getCourseDetail, updateCourse, getAllCourses...) ...
   getCourseDetail(id: number) {
     return axiosClient.get<AdminCourseDetail>(`/api/admin/courses/${id}/`);
   },
@@ -63,7 +59,6 @@ export const adminApi = {
     return axiosClient.get<DashboardCourse[]>("/api/admin/courses/");
   },
 
-  // --- TRAINEES & SUPERVISORS (Giữ nguyên) ---
   getTrainees(courseId: number) {
     return axiosClient.get<User[]>(`/api/admin/courses/${courseId}/trainees/`);
   },
@@ -90,14 +85,10 @@ export const adminApi = {
     );
   },
 
-  // --- SUBJECTS & TASKS (CẬP NHẬT PHẦN NÀY) ---
-
-  // 1. Lấy danh sách Subject có sẵn (Search) -> Fix lỗi tìm kiếm
   getAllSubjects(params?: { search?: string }) {
     return axiosClient.get<Subject[]>("/api/admin/subjects/", { params });
   },
 
-  // 2. Add Subject vào Course
   addSubject(courseId: number, data: any) {
     return axiosClient.post(
       `/api/admin/courses/${courseId}/add-subject/`,
@@ -105,19 +96,16 @@ export const adminApi = {
     );
   },
 
-  // 3. Get Course Subjects
   getCourseSubjects(courseId: number) {
     return axiosClient.get<AdminCourseSubject[]>(
       `/api/admin/courses/${courseId}/subjects/`
     );
   },
 
-  // 4. Update Course Subject info
   updateCourseSubject(id: number, data: any) {
     return axiosClient.patch(`/api/admin/course-subjects/${id}/`, data);
   },
 
-  // 5. Remove Subject
   removeSubject(courseId: number, courseSubjectId: number) {
     return axiosClient.delete(
       `/api/admin/courses/${courseId}/remove-subject/`,
@@ -125,7 +113,6 @@ export const adminApi = {
     );
   },
 
-  // 6. Reorder
   reorderSubjects(courseId: number, items: { id: number; position: number }[]) {
     return axiosClient.post(
       `/api/admin/courses/${courseId}/reorder-subjects/`,
@@ -133,10 +120,9 @@ export const adminApi = {
     );
   },
 
-  // 7. ADD TASK (Fix lỗi dấu +)
   addTask(courseId: number, courseSubjectId: number, taskName: string) {
     return axiosClient.post(`/api/admin/courses/${courseId}/add-task/`, {
-      course_subject_id: courseSubjectId, // Phải khớp với request.data.get bên backend
+      course_subject_id: courseSubjectId,
       name: taskName,
     });
   },
@@ -144,7 +130,6 @@ export const adminApi = {
   createCourse(payload: CreateCoursePayload) {
     const formData = new FormData();
 
-    // 1. Append các trường cơ bản
     formData.append("name", payload.name);
     formData.append("start_date", payload.start_date);
     formData.append("finish_date", payload.finish_date);
@@ -153,19 +138,14 @@ export const adminApi = {
       formData.append("link_to_course", payload.link_to_course);
     }
 
-    // Mặc định status là 0 (Not Started) nếu không truyền
     if (payload.status !== undefined) {
       formData.append("status", payload.status.toString());
     }
 
-    // 2. Xử lý File ảnh (Quan trọng)
     if (payload.image) {
       formData.append("image", payload.image);
     }
 
-    // 3. Xử lý Mảng (Subjects & Supervisors)
-    // Django DRF thường nhận mảng dạng: key=value1&key=value2...
-    // Nên ta append cùng một key nhiều lần.
     if (payload.subjects && payload.subjects.length > 0) {
       payload.subjects.forEach((id) => {
         formData.append("subjects", id.toString());
@@ -178,13 +158,12 @@ export const adminApi = {
       });
     }
 
-    // 4. Gửi Request
     return axiosClient.post<DashboardCourse>(
       "/api/admin/courses/create/",
       formData,
       {
         headers: {
-          "Content-Type": "multipart/form-data", // Bắt buộc để upload file
+          "Content-Type": "multipart/form-data",
         },
       }
     );

@@ -18,7 +18,6 @@ export const getSupervisorColumns = (
   onToggleStatus: (user: User) => void,
   sessionUser: User | null
 ): ColumnDef<User>[] => [
-  // Select checkbox
   {
     id: "select",
     header: ({ table }) => (
@@ -47,7 +46,6 @@ export const getSupervisorColumns = (
     size: 50,
   },
 
-  // ID
   {
     accessorKey: "id",
     header: "ID",
@@ -59,7 +57,6 @@ export const getSupervisorColumns = (
     ),
   },
 
-  // Name
   {
     accessorKey: "full_name",
     header: "Name",
@@ -101,7 +98,6 @@ export const getSupervisorColumns = (
     },
   },
 
-  // Email / Contact
   {
     accessorKey: "email",
     header: "Contact",
@@ -168,7 +164,6 @@ export const getSupervisorColumns = (
     },
   },
 
-  // Status
   {
     accessorKey: "is_active",
     header: "Status",
@@ -196,7 +191,6 @@ export const getSupervisorColumns = (
     },
   },
 
-  // Permissions / Staff
   {
     accessorKey: "is_staff",
     header: "Permissions",
@@ -215,7 +209,6 @@ export const getSupervisorColumns = (
     ),
   },
 
-  // Actions
   {
     id: "actions",
     header: "Actions",

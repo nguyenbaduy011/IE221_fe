@@ -35,7 +35,7 @@ export default function CategoryEditForm({
   onCancel,
   onSuccess,
 }: Props) {
-  // Transform API data to Form Values
+
   const defaultValues: CategoryFormValues = {
     name: initialData.name,
     subject_categories:

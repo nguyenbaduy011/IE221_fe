@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-  DialogClose, // <--- THÊM IMPORT NÀY
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,6 @@ import {
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// ... (Giữ nguyên các hàm helper StatusBadge và getInitials) ...
 const getInitials = (name: string) => {
   return name
     .split(" ")

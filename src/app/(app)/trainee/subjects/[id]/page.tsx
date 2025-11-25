@@ -10,7 +10,7 @@ interface PageProps {
 }
 
 export default async function SubjectDetailPage({ params }: PageProps) {
-  const { id } = await params;        // 🔥 Next.js 15.5+ bắt buộc phải await
+  const { id } = await params; 
   const subjectId = Number(id);
 
   return <SubjectDetailClient initialId={subjectId} />;

@@ -1,4 +1,3 @@
-// src/app/(app)/trainee/subjects/[id]/_components/CompletionBox.tsx
 "use client";
 
 import { useState } from "react";
@@ -14,10 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+
 
 type Props = {
   detail: SubjectDetail;
@@ -25,33 +22,28 @@ type Props = {
 };
 
 export default function CompletionBox({ detail, onRefresh }: Props) {
-  // Parsing dates for input fields (YYYY-MM-DD)
   const [actualStart, setActualStart] = useState(
     detail.actual_start_day ? format(new Date(detail.actual_start_day), "yyyy-MM-dd") : ""
   );
   const [actualEnd, setActualEnd] = useState(
     detail.actual_end_day ? format(new Date(detail.actual_end_day), "yyyy-MM-dd") : ""
   );
-  
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Helper: Pluralize
   const dayText = detail.estimated_time_days > 1 ? "days" : "day";
 
-  // Check completion status
   const isFinished = [
-    SubjectStatus.FINISHED_EARLY, 
-    SubjectStatus.FINISHED_ON_TIME, 
+    SubjectStatus.FINISHED_EARLY,
+    SubjectStatus.FINISHED_ON_TIME,
     SubjectStatus.FINISHED_BUT_OVERDUE,
     SubjectStatus.OVERDUE_AND_NOT_FINISHED
   ].includes(detail.status);
 
   const unfinishedTasksCount = detail.tasks.filter(t => t.status === TaskStatus.NOT_DONE).length;
 
-  // Handler: Update dates when blur
   const handleDateBlur = async () => {
-    // Only call API if value changed and is valid
     if (!actualStart && !actualEnd) return;
 
     try {
@@ -60,42 +52,38 @@ export default function CompletionBox({ detail, onRefresh }: Props) {
             actual_end_day: actualEnd || undefined
         });
     } catch {
-        // Silent fail or toast
+
     }
   };
 
-  // Handler: Click Finish Button
   const handleFinishClick = () => {
-    // Validation
     if (!actualStart) return toast.error("Actual start date can not be blank");
     if (!actualEnd) return toast.error("Actual end date can not be blank");
-    
+
     if (new Date(actualEnd) < new Date(actualStart)) {
         return toast.error("Actual end date must be greater than or equal to start date");
     }
 
     if (unfinishedTasksCount > 0) {
-        setIsConfirmOpen(true); // Open popup
+        setIsConfirmOpen(true);
     } else {
-        submitFinish(); // Finish directly
+        submitFinish();
     }
   };
 
-  // API Call to finish
   const submitFinish = async () => {
     setLoading(true);
     try {
-        // Ensure dates are saved first/sent with finish request if needed
         await subjectApi.updateSubjectDates(detail.id, {
             actual_start_day: actualStart,
             actual_end_day: actualEnd
         });
-        
+
         await subjectApi.finishSubject(detail.id);
         toast.success("Subject completed successfully!");
         setIsConfirmOpen(false);
         onRefresh();
-    } catch (error) {
+    } catch {
         toast.error("Failed to finish subject");
     } finally {
         setLoading(false);
@@ -116,13 +104,13 @@ export default function CompletionBox({ detail, onRefresh }: Props) {
                 <p className="text-sm font-medium">Start at: <span className="font-normal">{format(new Date(detail.start_date), "dd/MM/yyyy")}</span></p>
                 <p className="text-sm font-medium">Deadline: <span className="font-normal">{format(new Date(detail.deadline), "dd/MM/yyyy")}</span></p>
             </div>
-            
+
             <div className="space-y-3">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Actual start day</label>
-                    <Input 
-                        type="date" 
-                        value={actualStart} 
+                    <Input
+                        type="date"
+                        value={actualStart}
                         onChange={(e) => setActualStart(e.target.value)}
                         onBlur={handleDateBlur}
                         disabled={isFinished}
@@ -130,9 +118,9 @@ export default function CompletionBox({ detail, onRefresh }: Props) {
                 </div>
                 <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Actual end day</label>
-                    <Input 
-                        type="date" 
-                        value={actualEnd} 
+                    <Input
+                        type="date"
+                        value={actualEnd}
                         onChange={(e) => setActualEnd(e.target.value)}
                         onBlur={handleDateBlur}
                         disabled={isFinished}
@@ -148,7 +136,7 @@ export default function CompletionBox({ detail, onRefresh }: Props) {
                     Finished
                  </Button>
             ) : (
-                <Button 
+                <Button
                     className={`w-full ${unfinishedTasksCount > 0 ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}
                     onClick={handleFinishClick}
                     disabled={loading}
@@ -169,7 +157,7 @@ export default function CompletionBox({ detail, onRefresh }: Props) {
             </DialogHeader>
             <div className="py-4">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    You still have <span className="font-bold text-red-500">{unfinishedTasksCount}</span> incomplete task(s). 
+                    You still have <span className="font-bold text-red-500">{unfinishedTasksCount}</span> incomplete task(s).
                     Please confirm the completion of the course.
                 </p>
             </div>

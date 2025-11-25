@@ -22,7 +22,7 @@ import {
   categorySchema,
   type CategoryFormValues,
 } from "@/validations/categoryValidation";
-import SubjectListEditor from "../[id]/SubjectListEditor"; // Import lại SubjectListEditor dùng chung
+import SubjectListEditor from "../[id]/SubjectListEditor";
 
 export default function NewCategoryPage() {
   const router = useRouter();
@@ -32,11 +32,10 @@ export default function NewCategoryPage() {
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
-      subject_categories: [{ subject_id: "" }], // Mặc định 1 dòng trống
+      subject_categories: [{ subject_id: "" }],
     },
   });
 
-  // Load master data Subject
   useEffect(() => {
     axiosClient
       .get("/api/supervisor/subjects/")

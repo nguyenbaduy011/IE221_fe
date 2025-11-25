@@ -87,7 +87,6 @@ export default function RegisterPage() {
       if (isAxiosError(err) && err.response) {
         const errorData = err.response.data as any;
 
-        // Focus field lỗi
         if (errorData.email) {
           form.setFocus("email");
           toast.error(`Email: ${errorData.email[0]}`);

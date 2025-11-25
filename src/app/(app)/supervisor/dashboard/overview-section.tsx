@@ -15,16 +15,13 @@ import { ActivityData, ChartData } from "@/types/course";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
-// Kích hoạt plugin "time ago"
 dayjs.extend(relativeTime);
 
-// --- Định nghĩa Props ---
 interface OverviewSectionProps {
   chartData: ChartData[];
   activities: ActivityData[];
 }
 
-// Hàm get Initials cho Avatar
 const getInitials = (name: string) => {
   return name
     ? name
@@ -40,7 +37,7 @@ export function OverviewSection({
   chartData,
   activities,
 }: OverviewSectionProps) {
-  // Kiểm tra nếu không có dữ liệu chart (tất cả value = 0)
+
   const hasChartData = chartData.some((item) => item.value > 0);
 
   return (

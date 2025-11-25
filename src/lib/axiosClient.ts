@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// lib/axiosClient.ts
 import axios, {
   AxiosError,
   AxiosResponse,
@@ -90,7 +89,6 @@ axiosClient.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false;
         tokenUtils.clearTokens();
-        // Chuyển hướng về trang login
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }
@@ -98,7 +96,6 @@ axiosClient.interceptors.response.use(
       }
 
       try {
-        // Gọi API để refresh token
         const rs = await axios.post(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/refresh/`,
           {
@@ -110,20 +107,16 @@ axiosClient.interceptors.response.use(
 
         tokenUtils.setAccessToken(access);
 
-        // Cập nhật header cho request gốc và xử lý hàng đợi
         axiosClient.defaults.headers.common["Authorization"] =
           "Bearer " + access;
         originalRequest.headers["Authorization"] = "Bearer " + access;
         processQueue(null, access);
 
-        // Thực hiện lại request gốc đã thất bại
         return axiosClient(originalRequest);
       } catch (_error) {
-        // Nếu refresh token cũng hết hạn hoặc lỗi (như lỗi 500 User Not Found)
         processQueue(_error as AxiosError, null);
         tokenUtils.clearTokens();
 
-        // Chuyển hướng về trang login
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }

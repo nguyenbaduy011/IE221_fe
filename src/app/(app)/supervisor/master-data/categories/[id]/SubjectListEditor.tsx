@@ -89,7 +89,7 @@ export default function SubjectListEditor({ control, allSubjects }: Props) {
                             <SelectItem
                               key={sub.id}
                               value={subIdStr}
-                              disabled={isSelected} // Lock duplicates
+                              disabled={isSelected}
                               className={isSelected ? "opacity-50" : ""}
                             >
                               {sub.name} {isSelected ? "(Selected)" : ""}

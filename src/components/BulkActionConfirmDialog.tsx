@@ -14,9 +14,9 @@ interface BulkActionConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   count: number;
-  action: "activate" | "deactivate"; // action type
+  action: "activate" | "deactivate";
   onConfirm: () => void;
-  waitSeconds?: number; // thời gian chờ trước khi bật nút
+  waitSeconds?: number;
 }
 
 export function BulkActionConfirmDialog({
@@ -25,7 +25,7 @@ export function BulkActionConfirmDialog({
   count,
   action,
   onConfirm,
-  waitSeconds = 5, // mặc định 5 giây
+  waitSeconds = 5,
 }: BulkActionConfirmDialogProps) {
   const [seconds, setSeconds] = useState(waitSeconds);
 

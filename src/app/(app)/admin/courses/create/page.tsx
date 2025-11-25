@@ -11,12 +11,10 @@ import { User, UserRole } from "@/types/user";
 import { Loader2, Upload, X, ArrowLeft, Save } from "lucide-react";
 import dayjs from "dayjs";
 
-// UI Components
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -139,10 +137,8 @@ export default function CreateCoursePage() {
 
       const res = await adminApi.createCourse(payload);
 
-      // --- SỬA LOGIC LẤY ID TẠI ĐÂY ---
-      const responseBody = (res as any).data || res; // Lấy body response
+      const responseBody = (res as any).data || res;
 
-      // Kiểm tra ID ở cả 2 nơi: trực tiếp hoặc lồng trong biến data
       const newCourseId = responseBody.id || responseBody.data?.id;
 
       console.log("Full Response:", responseBody);
@@ -150,16 +146,13 @@ export default function CreateCoursePage() {
 
       if (newCourseId) {
         alert("Thành công: Đã tạo khóa học mới.");
-        // Chuyển hướng đến trang chi tiết (đường dẫn tuyệt đối)
         router.push(`/admin/courses/${newCourseId}`);
       } else {
         console.warn("Không tìm thấy ID, quay về danh sách.");
         router.push("/admin/courses");
       }
-      // ---------------------------------
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submit Error:", error);
-      // ... (giữ nguyên phần xử lý lỗi)
     } finally {
       setIsSubmitting(false);
     }

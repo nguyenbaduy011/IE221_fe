@@ -1,4 +1,3 @@
-// src/app/(app)/trainee/subjects/[id]/_components/ProgressBar.tsx
 import { Progress } from "@/components/ui/progress";
 
 type Props = {

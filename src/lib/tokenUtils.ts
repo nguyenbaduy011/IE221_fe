@@ -1,5 +1,4 @@
-// lib/tokenUtils.ts
-import { AuthLoginResponse } from "@/types/user"; // Import type của bạn
+import { AuthLoginResponse } from "@/types/user";
 
 
 export const tokenUtils = {

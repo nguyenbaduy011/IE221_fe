@@ -56,7 +56,6 @@ export default function NewTaskPage() {
       router.push("/admin/master-data/tasks");
     } catch (error: any) {
       console.error("Submit error:", error);
-      // Handle duplicate error specifically
       const errorData = error.response?.data;
       if (errorData?.non_field_errors) {
         toast.error(errorData.non_field_errors[0]);

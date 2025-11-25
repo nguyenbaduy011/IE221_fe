@@ -1,4 +1,3 @@
-// src/app/(app)/trainee/subjects/[id]/_components/StudentInfo.tsx
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -23,7 +22,7 @@ export default function StudentInfo({ studentName, courseName, courseStart, cour
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-wide">
           {studentName}
         </h2>
-        
+
         <div className="text-sm text-gray-500 dark:text-gray-400">
           {format(new Date(courseStart), "dd/MM/yyyy")} - {format(new Date(courseEnd), "dd/MM/yyyy")}
         </div>

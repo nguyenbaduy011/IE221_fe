@@ -7,7 +7,7 @@ import { User, UserRole } from "@/types/user";
 import { userApi, CreateUserPayload, UpdateUserPayload } from "@/lib/userApi";
 import { Button } from "@/components/ui/button";
 import { DataTable, FilterState } from "./data-table";
-import { getColumns } from "./columns"; // File này giữ nguyên từ code cũ của bạn
+import { getColumns } from "./columns";
 import {
   BulkAddUserDialog,
   CreateUserDialog,
@@ -15,8 +15,6 @@ import {
 } from "@/components/AdminUserDialogs";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-
-// Đã xóa DeleteConfirmDialog vì Backend không cho phép xóa
 
 export default function AdminUserPage() {
   const [users, setUsers] = React.useState<User[]>([]);
@@ -31,17 +29,13 @@ export default function AdminUserPage() {
     status: "ALL",
   });
 
-  // State cho Dialog Tạo mới
   const [createOpen, setCreateOpen] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
-
-  // State cho Dialog Chỉnh sửa
   const [editOpen, setEditOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
   const [updating, setUpdating] = React.useState(false);
 
-  // Fetch data
-  const fetchUsers = async () => {
+  const fetchUsers = React.useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -57,16 +51,15 @@ export default function AdminUserPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
       fetchUsers();
     }, 500);
     return () => clearTimeout(timer);
-  }, [filter]);
+  }, [fetchUsers]);
 
-  // Xử lý Tạo mới
   const handleCreateUser = async (data: CreateUserPayload) => {
     setCreating(true);
     try {
@@ -81,13 +74,11 @@ export default function AdminUserPage() {
     }
   };
 
-  // Mở Dialog sửa
   const handleEditClick = (user: User) => {
     setEditingUser(user);
     setEditOpen(true);
   };
 
-  // Xử lý Cập nhật
   const handleUpdateUser = async (id: number, data: UpdateUserPayload) => {
     setUpdating(true);
     try {
@@ -103,7 +94,6 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý Khóa/Mở khóa (Single)
   const handleToggleStatus = async (user: User) => {
     try {
       if (user.is_active) {
@@ -119,7 +109,6 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý Bulk Add
   const handleBulkAdd = async (emails: string[]) => {
     setBulkAdding(true);
     try {
@@ -134,7 +123,6 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý Bulk Deactivate (Thay thế Delete)
   const handleBulkDeactivate = async (ids: number[]) => {
     try {
       await userApi.bulkDeactivate(ids);
@@ -145,7 +133,6 @@ export default function AdminUserPage() {
     }
   };
 
-  // Xử lý Bulk Activate
   const handleBulkActivate = async (ids: number[]) => {
     try {
       await userApi.bulkActivate(ids);
@@ -158,7 +145,6 @@ export default function AdminUserPage() {
 
   const { user: sessionUser } = useAuth();
 
-  // Hàm getColumns vẫn lấy từ file columns cũ (có nút Edit)
   const columns = getColumns(handleToggleStatus, handleEditClick, sessionUser);
 
   return (
@@ -192,7 +178,6 @@ export default function AdminUserPage() {
           filter={filter}
           setFilter={setFilter}
           loading={loading}
-          // Truyền 2 hàm mới thay vì onBulkDelete
           onBulkDeactivate={handleBulkDeactivate}
           onBulkActivate={handleBulkActivate}
         />

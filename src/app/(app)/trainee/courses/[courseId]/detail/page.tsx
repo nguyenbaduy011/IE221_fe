@@ -6,10 +6,8 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import { BookOpen, Calendar, AlertCircle, Clock, Users } from "lucide-react";
 
-// --- Imports API & Types ---
 import type { CourseDetailResponse, SubjectItem } from "@/types/courseDetail";
 
-// --- Imports Shadcn UI ---
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +22,6 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { courseApi } from "@/lib/courseApi";
 
-// Helper format date
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "--/--/----";
   try {
@@ -35,25 +32,24 @@ const formatDate = (dateString: string | null) => {
   }
 };
 
-// --- HELPER: Get color based on Status ---
+
 const getStatusColor = (status: string) => {
   switch (status) {
     case "Finished":
     case "Finished early":
     case "Finished on time":
-      return "bg-green-100 text-green-700 hover:bg-green-100 border-green-200"; // Green
+      return "bg-green-100 text-green-700 hover:bg-green-100 border-green-200";
     case "In Progress":
-      return "bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200"; // Blue
+      return "bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200";
     case "Finished but overdue":
     case "Overdue":
-      return "bg-red-100 text-red-700 hover:bg-red-100 border-red-200"; // Red
+      return "bg-red-100 text-red-700 hover:bg-red-100 border-red-200";
     case "Not Started":
     default:
-      return "bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200"; // Gray
+      return "bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200";
   }
 };
 
-// Helper for timeline dot color
 const getTimelineStatusColor = (status: string) => {
   switch (status) {
     case "Finished":
@@ -280,7 +276,7 @@ export default function TraineeCourseDetailPage() {
                                 size="sm"
                                 onClick={() => handleOpenFeedback(subject)}
                                 className="cursor-pointer"
-                              
+
                               >
                                 Details
                               </Button>

@@ -14,8 +14,6 @@ import ProgressBar from "./components/ProgressBar";
 import StudentInfo from "./components/StudentInfo";
 import TaskItem from "./components/TaskItem";
 
-// Import components
-
 type Props = {
   initialId: number;
 };
@@ -25,7 +23,6 @@ export default function SubjectDetailClient({ initialId }: Props) {
   const [detail, setDetail] = useState<SubjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Sử dụng useCallback để hàm không bị tạo lại mỗi lần render
   const fetchDetail = useCallback(async () => {
     if (!initialId || isNaN(initialId)) {
        setLoading(false);
@@ -33,15 +30,8 @@ export default function SubjectDetailClient({ initialId }: Props) {
     }
 
     try {
-      // Gọi API thông qua subjectApi (đã dùng axiosClient có token)
       const response = await subjectApi.getDetail(initialId);
-      
-      // LOGIC XỬ LÝ RESPONSE (Giống page.tsx)
-      // axiosClient trả về object response đầy đủ. 
-      // Dữ liệu thực tế nằm ở response.data.
-      // Backend DRF mặc định trả về data ngay tại root của response.data.
-      // Tuy nhiên, logic này hỗ trợ cả trường hợp Backend bọc trong field "data".
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const responseData = response.data as any;
       const finalData = responseData.data || responseData;
@@ -56,9 +46,8 @@ export default function SubjectDetailClient({ initialId }: Props) {
     } catch (error: unknown) {
       console.error("Error fetching subject:", error);
       let msg = "Không thể tải thông tin môn học.";
-      
+
       if (error instanceof AxiosError) {
-        // Xử lý lỗi 404 hoặc 403 cụ thể
         if (error.response?.status === 404) {
              msg = "Môn học không tồn tại.";
         } else if (error.response?.status === 403) {
@@ -71,12 +60,10 @@ export default function SubjectDetailClient({ initialId }: Props) {
     }
   }, [initialId]);
 
-  // Gọi fetch khi component mount
   useEffect(() => {
     fetchDetail();
   }, [fetchDetail]);
 
-  // --- RENDER ---
 
   if (loading) {
     return (
@@ -99,19 +86,16 @@ export default function SubjectDetailClient({ initialId }: Props) {
     );
   }
 
-  // Tính toán progress
-  // Sử dụng optional chaining (?.) để tránh lỗi nếu tasks undefined
   const totalTasks = detail.tasks?.length || 0;
   const completedTasks = detail.tasks?.filter(t => t.status === TaskStatus.DONE).length || 0;
   const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
-  
-  // Logic kiểm tra đã finish chưa (Status >= 2 là các trạng thái đã kết thúc)
-  const isFinished = detail.status >= 2; 
+
+  const isFinished = detail.status >= 2;
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6 max-w-6xl animate-in fade-in duration-500">
       {/* Header Info */}
-      <StudentInfo 
+      <StudentInfo
         studentName={detail.student?.name || "N/A"}
         courseName={detail.course?.name || "N/A"}
         courseStart={detail.course?.start_date || ""}
@@ -129,13 +113,13 @@ export default function SubjectDetailClient({ initialId }: Props) {
                 <h3 className="text-lg font-bold dark:text-white">Danh sách bài tập</h3>
                 <span className="text-sm text-gray-500">{completedTasks}/{totalTasks} hoàn thành</span>
              </div>
-             
+
              <div className="space-y-3">
                 {detail.tasks?.map(task => (
-                    <TaskItem 
-                        key={task.id} 
-                        task={task} 
-                        onUpdate={fetchDetail} 
+                    <TaskItem
+                        key={task.id}
+                        task={task}
+                        onUpdate={fetchDetail}
                         disabled={isFinished}
                     />
                 ))}
@@ -144,7 +128,7 @@ export default function SubjectDetailClient({ initialId }: Props) {
                 )}
              </div>
            </div>
-           
+
            {/* Mobile View Assessments */}
            <div className="block lg:hidden">
               <Assessments score={detail.score} maxScore={detail.max_score} comments={detail.comments || []} />
@@ -156,7 +140,7 @@ export default function SubjectDetailClient({ initialId }: Props) {
             <div className="hidden lg:block">
                 <Assessments score={detail.score} maxScore={detail.max_score} comments={detail.comments || []} />
             </div>
-            
+
             <CompletionBox detail={detail} onRefresh={fetchDetail} />
         </div>
       </div>

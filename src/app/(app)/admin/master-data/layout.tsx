@@ -28,7 +28,6 @@ export default function MasterDataLayout({
         {/* Thanh Tabs */}
         <div className="flex space-x-6">
           {tabs.map((tab) => {
-            // Kiểm tra active
             const isActive = pathname.startsWith(tab.href);
 
             return (
@@ -38,8 +37,8 @@ export default function MasterDataLayout({
                 className={cn(
                   "pb-3 text-sm font-medium border-b-2 transition-colors",
                   isActive
-                    ? "border-primary text-primary" // Active: Dùng màu chính (thường là đen hoặc xanh đậm tùy theme)
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border" // Inactive: Màu xám nhạt, hover lên màu chính
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
                 )}
               >
                 {tab.name}
