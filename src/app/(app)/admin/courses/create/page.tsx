@@ -27,20 +27,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formSchema = z
   .object({
-    name: z.string().min(3, "Tên khóa học phải có ít nhất 3 ký tự"),
-    link_to_course: z
-      .string()
-      .url("Link không hợp lệ")
-      .optional()
-      .or(z.literal("")),
-    start_date: z
-      .string()
-      .refine((val) => val !== "", "Vui lòng chọn ngày bắt đầu"),
-    finish_date: z
-      .string()
-      .refine((val) => val !== "", "Vui lòng chọn ngày kết thúc"),
+    name: z.string().min(3, "Course's name have at least 3 letters"),
+    link_to_course: z.string().url("Unvalid link").optional().or(z.literal("")),
+    start_date: z.string().refine((val) => val !== "", "Choose a Start Date"),
+    finish_date: z.string().refine((val) => val !== "", "Choose a Finish Date"),
     subject_ids: z.array(z.number()).default([]),
-    supervisor_ids: z.array(z.number()).min(1, "Cần ít nhất 1 supervisor"),
+    supervisor_ids: z.array(z.number()).min(1, "Have at least 1 trainer"),
   })
   .refine(
     (data) => {
@@ -49,7 +41,7 @@ const formSchema = z
       return end.isAfter(start);
     },
     {
-      message: "Ngày kết thúc phải sau ngày bắt đầu",
+      message: "Finish Date have to set after Start Date",
       path: ["finish_date"],
     }
   );
@@ -145,10 +137,15 @@ export default function CreateCoursePage() {
       console.log("New Course ID:", newCourseId);
 
       if (newCourseId) {
+<<<<<<< Updated upstream
         alert("Thành công: Đã tạo khóa học mới.");
+=======
+        alert("Success: Created new course");
+        // Chuyển hướng đến trang chi tiết (đường dẫn tuyệt đối)
+>>>>>>> Stashed changes
         router.push(`/admin/courses/${newCourseId}`);
       } else {
-        console.warn("Không tìm thấy ID, quay về danh sách.");
+        console.warn("Can't find ID. Return to course list");
         router.push("/admin/courses");
       }
     } catch (error) {
@@ -174,10 +171,10 @@ export default function CreateCoursePage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Tạo Khóa Học Mới
+            Create new Course
           </h1>
           <p className="text-muted-foreground text-sm">
-            Điền thông tin để khởi tạo một khóa học.
+            Fill infomation to create Course.
           </p>
         </div>
       </div>
@@ -189,7 +186,7 @@ export default function CreateCoursePage() {
             <div className="md:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Thông tin chung</CardTitle>
+                  <CardTitle>General</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -198,7 +195,7 @@ export default function CreateCoursePage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Tên khóa học <span className="text-red-500">*</span>
+                          Course's name <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -215,7 +212,7 @@ export default function CreateCoursePage() {
                     name="link_to_course"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Link tài liệu</FormLabel>
+                        <FormLabel>Document link</FormLabel>
                         <FormControl>
                           <Input placeholder="https://..." {...field} />
                         </FormControl>
@@ -230,7 +227,7 @@ export default function CreateCoursePage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Ngày bắt đầu <span className="text-red-500">*</span>
+                            Start date <span className="text-red-500">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -245,8 +242,7 @@ export default function CreateCoursePage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Ngày kết thúc{" "}
-                            <span className="text-red-500">*</span>
+                            Finish date <span className="text-red-500">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -261,7 +257,7 @@ export default function CreateCoursePage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Môn học ({availableSubjects.length})</CardTitle>
+                  <CardTitle>Subject ({availableSubjects.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[200px] w-full rounded-md border p-4">
@@ -319,7 +315,7 @@ export default function CreateCoursePage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Ảnh bìa</CardTitle>
+                  <CardTitle>Avatar</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col items-center gap-4">
@@ -345,7 +341,7 @@ export default function CreateCoursePage() {
                       ) : (
                         <div className="text-center text-muted-foreground p-4">
                           <Upload className="mx-auto h-8 w-8 mb-2 opacity-50" />
-                          <p className="text-xs">Chưa chọn ảnh</p>
+                          <p className="text-xs">No picture chosen</p>
                         </div>
                       )}
                     </div>
@@ -363,7 +359,7 @@ export default function CreateCoursePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Supervisor <span className="text-red-500">*</span>
+                    Trainer <span className="text-red-500">*</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -375,7 +371,7 @@ export default function CreateCoursePage() {
                         <FormItem>
                           {availableSupervisors.length === 0 && (
                             <p className="text-center text-sm text-muted-foreground">
-                              Chưa có Supervisor.
+                              No chosen Trainer.
                             </p>
                           )}
                           {availableSupervisors.map((user) => (
@@ -431,17 +427,17 @@ export default function CreateCoursePage() {
                 type="button"
                 onClick={() => router.back()}
               >
-                Hủy bỏ
+                Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang
-                    tạo...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                    Creating...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" /> Tạo khóa học
+                    <Save className="mr-2 h-4 w-4" /> Create Course
                   </>
                 )}
               </Button>

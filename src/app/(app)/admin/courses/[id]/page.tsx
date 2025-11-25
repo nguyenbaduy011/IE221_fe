@@ -47,6 +47,52 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+// --- HELPERS ---
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+// --- [NEW] STATUS BADGE COMPONENT (Giống admin-course-columns) ---
+const StatusBadge = ({ status }: { status: number }) => {
+  switch (status) {
+    case 0: // Not Started
+      return (
+        <Badge
+          variant="outline"
+          className="bg-muted text-muted-foreground border-border hover:bg-muted/80"
+        >
+          Not Started
+        </Badge>
+      );
+    case 1: // In Progress
+      return (
+        <Badge
+          variant="outline"
+          className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
+        >
+          In Progress
+        </Badge>
+      );
+    case 2: // Finished
+      return (
+        <Badge
+          variant="outline"
+          className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+        >
+          Finished
+        </Badge>
+      );
+    default:
+      return <Badge variant="secondary">Unknown</Badge>;
+  }
+};
 
 type EditableSubjectField =
   | "estimated_time_days"
@@ -205,7 +251,10 @@ const PeopleList = ({
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const safeData = Array.isArray(data) ? data : [];
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
   const displayLabel = type === "Supervisor" ? "Trainer" : type;
 
   const existingIds = useMemo(() => {
@@ -219,7 +268,6 @@ const PeopleList = ({
           {title} ({safeData.length})
         </h3>
 
-        {/* Cập nhật text nút bấm */}
         <Button size="sm" onClick={() => setIsDialogOpen(true)}>
           <UserPlus className="w-4 h-4 mr-2" /> Add {displayLabel}
         </Button>
@@ -914,11 +962,13 @@ export default function AdminCourseDetailPage() {
           : courseBody;
 
       if (actualCourseData.supervisors) {
-        // giữ nguyên
+        // Dữ liệu trả về đã đúng chuẩn format AdminCourseDetail,
+        // không cần xử lý thêm, logic supervisorList bên dưới sẽ tự lo liệu.
       } else if (
         actualCourseData.members &&
         actualCourseData.members.trainers
       ) {
+        // Trường hợp cấu trúc API cũ/khác trả về nested members
         actualCourseData.supervisors =
           actualCourseData.members.trainers.list.map((t: any) => ({
             id: Math.random(),
@@ -1061,24 +1111,40 @@ export default function AdminCourseDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Info:{" "}
-            {isEditing ? (
-              <Input
-                value={editForm.name}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, name: e.target.value })
-                }
-                className="max-w-md font-bold bg-background"
+          <CardTitle className="flex items-center gap-4">
+            {/* AVATAR UI */}
+            <Avatar className="h-16 w-16 border border-border shadow-sm rounded-lg">
+              <AvatarImage
+                src={course.image || ""}
+                alt={course.name}
+                className="object-cover"
               />
-            ) : (
-              course.name
-            )}
-            {!isEditing && (
-              <Badge variant={course.status === 1 ? "default" : "secondary"}>
-                {course.status === 1 ? "Active" : "Not Started"}
-              </Badge>
-            )}
+              <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-lg">
+                {getInitials(course.name)}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground text-sm font-normal">
+                  Course Name:
+                </span>
+                {isEditing ? (
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, name: e.target.value })
+                    }
+                    className="max-w-md font-bold bg-background h-8"
+                  />
+                ) : (
+                  <span className="text-xl font-bold">{course.name}</span>
+                )}
+              </div>
+
+              {/* [UPDATED] STATUS BADGE */}
+              {!isEditing && <StatusBadge status={course.status} />}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
