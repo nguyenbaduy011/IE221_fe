@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Plus, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Plus, Loader2, Tags } from "lucide-react";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog";
 
@@ -62,38 +62,47 @@ export default function CategoryListPage() {
 
   if (loading)
     return (
-      <div className="flex justify-center p-10">
-        <Loader2 className="animate-spin text-primary" />
+      <div className="flex flex-col items-center justify-center py-20 animate-pulse space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-muted-foreground font-medium">
+          Loading categories...
+        </p>
       </div>
     );
 
   return (
-    <div className="h-full flex flex-col space-y-4">
-      {/* Header Section */}
-      <div className="flex-none flex justify-between items-center bg-card p-4 rounded-lg shadow-sm border border-border">
-        <h2 className="text-xl font-semibold tracking-tight text-card-foreground">
-          Category List
-        </h2>
+    <div className="space-y-6">
+      {/* Action Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Tags className="w-5 h-5 text-primary" />
+            Category Definitions ({categories.length})
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Manage categories used to organize subjects and courses.
+          </p>
+        </div>
         <Link href="/supervisor/master-data/categories/new">
-          <Button className="cursor-pointer">
+          <Button className="shadow-sm">
             <Plus className="w-4 h-4 mr-2" /> Add Category
           </Button>
         </Link>
       </div>
 
       {/* Table Container */}
-      <div className="flex-1 overflow-hidden rounded-md border border-border bg-card shadow-sm relative">
-        <div className="absolute inset-0 overflow-auto">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-0">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-muted/50 border-b border-border">
+            <TableHeader className="bg-muted/20">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[40%] font-bold text-muted-foreground">
+                <TableHead className="w-[40%] font-bold text-foreground pl-6">
                   Category Name
                 </TableHead>
-                <TableHead className="text-center font-bold text-muted-foreground">
+                <TableHead className="text-center font-bold text-foreground">
                   Subjects Count
                 </TableHead>
-                <TableHead className="text-right font-bold text-muted-foreground pr-6">
+                <TableHead className="text-right font-bold text-foreground pr-6">
                   Actions
                 </TableHead>
               </TableRow>
@@ -103,7 +112,7 @@ export default function CategoryListPage() {
                 <TableRow>
                   <TableCell
                     colSpan={3}
-                    className="text-center h-24 text-muted-foreground"
+                    className="text-center h-32 text-muted-foreground"
                   >
                     No categories found.
                   </TableCell>
@@ -112,31 +121,32 @@ export default function CategoryListPage() {
                 categories.map((cat) => (
                   <TableRow
                     key={cat.id}
-                    className="hover:bg-muted/50 transition-colors border-b border-border"
+                    className="hover:bg-muted/50 transition-colors border-b border-border last:border-0"
                   >
-                    <TableCell className="font-medium p-4 align-middle text-foreground">
+                    <TableCell className="font-medium p-4 pl-6 align-middle text-foreground">
                       {cat.name}
                     </TableCell>
-                    <TableCell className="text-center p-4 align-middle text-foreground">
-                      {cat.subject_categories?.length || 0}
+                    <TableCell className="text-center p-4 align-middle text-muted-foreground">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                        {cat.subject_categories?.length || 0}
+                      </span>
                     </TableCell>
-                    <TableCell className="text-right p-4 align-middle space-x-2 pr-4">
+                    <TableCell className="text-right p-4 pr-6 align-middle space-x-2">
                       <Link
                         href={`/supervisor/master-data/categories/${cat.id}`}
                       >
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400"
+                          className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
                       </Link>
-
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 text-destructive"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         onClick={() => confirmDelete(cat.id)}
                       >
                         <Trash2 className="w-4 h-4" />

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -15,6 +16,7 @@ import {
 } from "@/components/AdminUserDialogs";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { Loader2, Users, UserPlus, Upload } from "lucide-react";
 
 export default function AdminUserPage() {
   const [users, setUsers] = React.useState<User[]>([]);
@@ -36,7 +38,11 @@ export default function AdminUserPage() {
   const [updating, setUpdating] = React.useState(false);
 
   const fetchUsers = React.useCallback(async () => {
-    setLoading(true);
+    // Note: We keep setLoading(true) here if you want the full page loader
+    // every time filters change, or remove it if you want the table to handle its own loading.
+    // Based on the reference code, we'll keep the initial load logic mostly.
+    if (users.length === 0) setLoading(true);
+
     try {
       const params = {
         search: filter.search,
@@ -144,45 +150,73 @@ export default function AdminUserPage() {
   };
 
   const { user: sessionUser } = useAuth();
-
   const columns = getColumns(handleToggleStatus, handleEditClick, sessionUser);
+
+  // Unified Loading State
+  if (loading && users.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">
+            Loading user directory...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-6 py-10 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management (Admin)</h1>
-        <div className="flex gap-2">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Users className="w-8 h-8 text-primary" />
+            User Management
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Manage system users, roles, and access permissions.
+          </p>
+        </div>
+
+        <div className="flex gap-3 shrink-0">
           <Button
-            className="cursor-pointer"
-            onClick={() => setCreateOpen(true)}
-          >
-            + Add User
-          </Button>
-          <Button
-            className="cursor-pointer"
+            variant="outline"
+            className="shadow-sm"
             onClick={() => setBulkAddOpen(true)}
           >
-            + Bulk Add Users
+            <Upload className="w-4 h-4 mr-2" />
+            Bulk Import
+          </Button>
+          <Button className="shadow-sm" onClick={() => setCreateOpen(true)}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add User
           </Button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="w-full flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"></div>
+      {/* TABLE SECTION */}
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border bg-muted/20">
+          <h2 className="text-lg font-semibold text-foreground">
+            User Directory ({users.length})
+          </h2>
         </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={users}
-          filter={filter}
-          setFilter={setFilter}
-          loading={loading}
-          onBulkDeactivate={handleBulkDeactivate}
-          onBulkActivate={handleBulkActivate}
-        />
-      )}
+        <div className="p-6">
+          <DataTable
+            columns={columns}
+            data={users}
+            filter={filter}
+            setFilter={setFilter}
+            loading={loading}
+            onBulkDeactivate={handleBulkDeactivate}
+            onBulkActivate={handleBulkActivate}
+          />
+        </div>
+      </div>
 
+      {/* DIALOGS */}
       <CreateUserDialog
         open={createOpen}
         onOpenChange={setCreateOpen}

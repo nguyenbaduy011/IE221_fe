@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -9,6 +10,7 @@ import { SupervisorDataTable, SupervisorFilterState } from "./data-table";
 import { getSupervisorColumns } from "./columns";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { Loader2, Users, ShieldCheck } from "lucide-react";
 
 export default function SupervisorUserPage() {
   const [users, setUsers] = React.useState<User[]>([]);
@@ -21,7 +23,9 @@ export default function SupervisorUserPage() {
   });
 
   const fetchUsers = React.useCallback(async () => {
-    setLoading(true);
+    // Keep loading true on initial load or if list is empty for better UX
+    if (users.length === 0) setLoading(true);
+
     try {
       const params = {
         search: filter.search,
@@ -85,31 +89,59 @@ export default function SupervisorUserPage() {
   };
 
   const { user: sessionUser } = useAuth();
-
   const columns = getSupervisorColumns(handleToggleStatus, sessionUser);
+
+  // Unified Loading State
+  if (loading && users.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">
+            Loading user directory...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-6 py-10 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management (Supervisor)</h1>
-        {/* Supervisor không có quyền Add/Bulk Add User -> Đã xóa button */}
+      {/* HEADER SECTION */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <Users className="w-8 h-8 text-primary" />
+            User Management
+          </h1>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm sm:text-base">
+            <ShieldCheck className="w-4 h-4 text-blue-500" />
+            <span>
+              Supervisor View - Manage statuses and view user details.
+            </span>
+          </div>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="w-full flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent"></div>
+      {/* TABLE SECTION */}
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border bg-muted/20 flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-foreground">
+            User Directory ({users.length})
+          </h2>
         </div>
-      ) : (
-        <SupervisorDataTable
-          columns={columns}
-          data={users}
-          filter={filter}
-          setFilter={setFilter}
-          loading={loading}
-          onBulkDeactivate={handleBulkDeactivate}
-          onBulkActivate={handleBulkActivate}
-        />
-      )}
+        <div className="p-6">
+          <SupervisorDataTable
+            columns={columns}
+            data={users}
+            filter={filter}
+            setFilter={setFilter}
+            loading={loading}
+            onBulkDeactivate={handleBulkDeactivate}
+            onBulkActivate={handleBulkActivate}
+          />
+        </div>
+      </div>
     </div>
   );
 }
