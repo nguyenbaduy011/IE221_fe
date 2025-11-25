@@ -5,6 +5,9 @@ import { Loader2, Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DashboardCourse } from "@/types/course";
 import { adminApi } from "@/lib/adminApi";
+// Import thêm supervisorApi hoặc axiosClient để gọi my-courses
+import { supervisorApi } from "@/lib/supervisorApi";
+import axiosClient from "@/lib/axiosClient";
 import Link from "next/link";
 import { CourseDataTable } from "./course-data-table";
 import { getAdminColumns } from "./admin-course-columns";
@@ -12,26 +15,47 @@ import { getAdminColumns } from "./admin-course-columns";
 export default function AdminCourseManagementPage() {
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<"ADMIN" | "SUPERVISOR" | null>(null);
 
+  // 1. Lấy Role
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const res = await axiosClient.get("/auth/me/");
+        const user = (res.data as any).data || res.data;
+        setRole(user.role);
+      } catch (error) {
+        console.error("Failed to fetch role");
+      }
+    };
+    fetchRole();
+  }, []);
+
+  // 2. Fetch Courses dựa trên Role
   const fetchCourses = async () => {
+    if (!role) return; // Chờ role load xong
     try {
       setLoading(true);
-      const response = await adminApi.getAllCourses();
+
+      let response;
+      if (role === "ADMIN") {
+        response = await adminApi.getAllCourses();
+      } else {
+        // Supervisor: Gọi my-courses
+        response = await supervisorApi.getMyCourses();
+      }
 
       const payload = (response as any).data || response;
-
-      console.log("Courses Payload:", payload);
 
       if (payload && Array.isArray(payload.data)) {
         setCourses(payload.data);
       } else if (Array.isArray(payload)) {
         setCourses(payload);
       } else {
-        console.warn("Unexpected data structure:", payload);
         setCourses([]);
       }
     } catch (error) {
-      console.error("Failed to fetch courses for admin:", error);
+      console.error("Failed to fetch courses:", error);
     } finally {
       setLoading(false);
     }
@@ -39,15 +63,15 @@ export default function AdminCourseManagementPage() {
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [role]); // Chạy khi role thay đổi
 
-  if (loading) {
+  if (loading || !role) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 animate-pulse">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
           <p className="text-muted-foreground font-medium">
-            Loading all courses...
+            Loading courses...
           </p>
         </div>
       </div>
@@ -61,25 +85,33 @@ export default function AdminCourseManagementPage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
               <Layers className="w-8 h-8 text-primary" />
-              Course Management
+              {role === "ADMIN" ? "Course Management" : "My Courses"}
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              System-wide overview and management of all training courses.
+              {role === "ADMIN"
+                ? "System-wide overview and management of all training courses."
+                : "Overview and management of courses you supervise."}
             </p>
           </div>
 
-          <Button asChild className="shrink-0 shadow-sm">
-            <Link href="/admin/courses/create">
-              <Plus className="w-5 h-5 mr-2" />
-              Create New Course
-            </Link>
-          </Button>
+          {/* Chỉ Admin mới thấy nút Create */}
+          {role === "ADMIN" && (
+            <Button asChild className="shrink-0 shadow-sm">
+              <Link href="/admin/courses/create">
+                <Plus className="w-5 h-5 mr-2" />
+                Create New Course
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
           <div className="p-6 border-b border-border bg-muted/20">
             <h2 className="text-lg font-semibold text-foreground">
-              All Courses Directory ({courses.length})
+              {role === "ADMIN"
+                ? "All Courses Directory"
+                : "Your Supervised Courses"}{" "}
+              ({courses.length})
             </h2>
           </div>
           <div className="p-6">
