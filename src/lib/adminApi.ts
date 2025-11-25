@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosClient from "@/lib/axiosClient";
 import { DashboardCourse, DashboardStats } from "@/types/course";
 import { User } from "@/types/user";

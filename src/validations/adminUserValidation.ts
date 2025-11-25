@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { UserRole } from "@/types/user";
 
 export const createUserSchema = z.object({
   email: z
