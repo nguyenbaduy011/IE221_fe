@@ -93,7 +93,7 @@ export default function SupervisorDashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Supervisor Dashboard
+              Admin Dashboard
             </h1>
             <p className="text-muted-foreground mt-1">
               Manage courses and track trainee progress
@@ -137,7 +137,7 @@ export default function SupervisorDashboard() {
         <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-foreground tracking-tight">
-              Courses Under Management
+              All Courses In System
             </h2>
           </div>
           <SupervisorCourseDataTable columns={getColumns} data={courses} />
