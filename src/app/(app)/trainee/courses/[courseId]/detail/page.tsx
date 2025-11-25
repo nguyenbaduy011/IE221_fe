@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { BookOpen, Calendar, AlertCircle, Clock, Users } from "lucide-react";
 
@@ -31,7 +31,6 @@ const formatDate = (dateString: string | null) => {
     return dateString;
   }
 };
-
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -65,6 +64,7 @@ const getTimelineStatusColor = (status: string) => {
 
 export default function TraineeCourseDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const courseId = params.courseId as string;
 
   const [course, setCourse] = useState<CourseDetailResponse | null>(null);
@@ -147,7 +147,9 @@ export default function TraineeCourseDetailPage() {
                 {/* --- STATUS COLOR --- */}
                 <Badge
                   variant="outline"
-                  className={`border-0 ${getStatusColor(course.status_display)}`}
+                  className={`border-0 ${getStatusColor(
+                    course.status_display
+                  )}`}
                 >
                   {course.status_display}
                 </Badge>
@@ -274,9 +276,10 @@ export default function TraineeCourseDetailPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleOpenFeedback(subject)}
+                                onClick={() =>
+                                  router.push(`/trainee/subjects/${subject.id}`)
+                                }
                                 className="cursor-pointer"
-
                               >
                                 Details
                               </Button>
