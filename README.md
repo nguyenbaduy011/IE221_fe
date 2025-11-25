@@ -1,6 +1,6 @@
 # 🏫 LMS -- Hệ thống Quản lý Đào tạo Nội bộ Doanh nghiệp (Frontend)
 
-Đây là dự án Frontend được xây dựng bằng **Next.js**, phục vụ cho hệ
+Đây là dự án với Frontend được xây dựng bằng **Next.js**, phục vụ cho hệ
 thống LMS nội bộ doanh nghiệp. Ứng dụng cung cấp giao diện người dùng
 cho các chức năng như quản lý khóa học, người dùng, lớp học, bài kiểm
 tra, báo cáo học tập và các hoạt động đào tạo nội bộ.
