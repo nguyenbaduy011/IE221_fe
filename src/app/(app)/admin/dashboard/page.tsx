@@ -2,7 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Activity, BarChart3, Loader2 } from "lucide-react";
+import {
+  Users,
+  Activity,
+  BarChart3,
+  Loader2,
+  LayoutDashboard,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SupervisorCourseDataTable } from "./course-data-table";
 import { getColumns } from "./course-columns";
@@ -78,68 +84,69 @@ export default function SupervisorDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          <p className="text-muted-foreground">Loading data...</p>
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">
+            Loading dashboard data...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Admin Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Manage courses and track trainee progress
-            </p>
-          </div>
+    <div className="container mx-auto px-6 py-10 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <LayoutDashboard className="w-8 h-8 text-primary" />
+            Admin Dashboard
+          </h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Manage courses and track trainee progress system-wide.
+          </p>
         </div>
+      </div>
 
-        {/* STATS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            title="Supervisors"
-            value={stats?.total_supervisors || 0}
-            icon={Users}
-            colorClass="bg-blue-500/10 text-blue-600 dark:text-blue-400"
-          />
-          <StatCard
-            title="Trainees"
-            value={stats?.total_trainees || 0}
-            icon={Users}
-            colorClass="bg-purple-500/10 text-purple-600 dark:text-purple-400"
-          />
-          <StatCard
-            title="Active Courses"
-            value={stats?.active_courses || 0}
-            icon={Activity}
-            colorClass="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-          />
-          <StatCard
-            title="Completion Rate"
-            value={`${stats?.completion_rate || 0}%`}
-            icon={BarChart3}
-            colorClass="bg-amber-500/10 text-amber-600 dark:text-amber-400"
-          />
-        </div>
-        <OverviewSection
-          chartData={stats?.chart_data || []}
-          activities={stats?.recent_activities || []}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="Supervisors"
+          value={stats?.total_supervisors || 0}
+          icon={Users}
+          colorClass="bg-blue-500/10 text-blue-600 dark:text-blue-400"
         />
+        <StatCard
+          title="Trainees"
+          value={stats?.total_trainees || 0}
+          icon={Users}
+          colorClass="bg-purple-500/10 text-purple-600 dark:text-purple-400"
+        />
+        <StatCard
+          title="Active Courses"
+          value={stats?.active_courses || 0}
+          icon={Activity}
+          colorClass="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+        />
+        <StatCard
+          title="Completion Rate"
+          value={`${stats?.completion_rate || 0}%`}
+          icon={BarChart3}
+          colorClass="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+        />
+      </div>
 
-        {/* TABLE SECTION */}
-        <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-foreground tracking-tight">
-              All Courses In System
-            </h2>
-          </div>
+      <OverviewSection
+        chartData={stats?.chart_data || []}
+        activities={stats?.recent_activities || []}
+      />
+
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border bg-muted/20">
+          <h2 className="text-lg font-semibold text-foreground">
+            All Courses In System
+          </h2>
+        </div>
+        <div className="p-6">
           <SupervisorCourseDataTable columns={getColumns} data={courses} />
         </div>
       </div>

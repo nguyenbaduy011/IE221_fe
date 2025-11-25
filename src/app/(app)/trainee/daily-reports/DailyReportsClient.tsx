@@ -7,6 +7,7 @@ import { DailyReport } from "@/types/dailyReport";
 import { Course } from "@/types/course";
 import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
+import { FileText, Filter, Loader2 } from "lucide-react";
 
 interface DailyReportApi {
   id: number;
@@ -30,7 +31,7 @@ const ITEMS_PER_PAGE = 5;
 export default function DailyReportsClient() {
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [filter, setFilter] = useState<FilterState>({
@@ -115,27 +116,65 @@ export default function DailyReportsClient() {
     }
   }, [totalPages, currentPage]);
 
+  // Initial loading state
+  if (loading && reports.length === 0 && availableCourses.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">
+            Loading your reports...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white border-b pb-2 dark:border-gray-700">
-        Daily Reports Management
-      </h1>
+    <div className="container mx-auto px-6 py-10 space-y-6">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col space-y-1 border-b border-border pb-5">
+        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+          <FileText className="w-8 h-8 text-primary" />
+          My Daily Reports
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          Create, view, and track the status of your daily progress reports.
+        </p>
+      </div>
 
-      <DailyReportsFilter
-        courses={availableCourses}
-        currentFilter={filter}
-        onFilterChange={handleFilterChange}
-      />
+      {/* FILTER SECTION */}
+      <div className="bg-card rounded-xl border border-border shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-foreground">
+          <Filter className="w-4 h-4 text-primary" />
+          Filter Options
+        </div>
+        <DailyReportsFilter
+          courses={availableCourses}
+          currentFilter={filter}
+          onFilterChange={handleFilterChange}
+        />
+      </div>
 
-      <DailyReportsList
-        reports={paginatedReports}
-        loading={loading}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPreviousPage={handlePreviousPage}
-        onNextPage={handleNextPage}
-        onRefresh={fetchReports}
-      />
+      {/* LIST SECTION */}
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border bg-muted/20">
+          <h2 className="text-lg font-semibold text-foreground">
+            Report History ({reports.length})
+          </h2>
+        </div>
+        <div className="p-6">
+          <DailyReportsList
+            reports={paginatedReports}
+            loading={loading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPreviousPage={handlePreviousPage}
+            onNextPage={handleNextPage}
+            onRefresh={fetchReports}
+          />
+        </div>
+      </div>
     </div>
   );
 }

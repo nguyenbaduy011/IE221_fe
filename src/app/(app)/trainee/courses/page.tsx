@@ -5,7 +5,12 @@ import CourseCard from "@/components/CourseCard";
 import { Course } from "@/types/course";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, FolderOpen } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FolderOpen,
+  GraduationCap,
+} from "lucide-react";
 import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
 
@@ -15,7 +20,7 @@ interface CourseListResponse extends Course {
   subject_count?: number;
 }
 
-const ITEMS_PER_PAGE = 8; 
+const ITEMS_PER_PAGE = 8;
 
 export default function TraineeMyCoursesPage() {
   const [courses, setCourses] = useState<CourseListResponse[]>([]);
@@ -65,46 +70,48 @@ export default function TraineeMyCoursesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8 bg-background min-h-screen">
-      <div className="flex items-center justify-between border-b border-border pb-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
-            My Courses
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage and track your learning progress.
-          </p>
-        </div>
+    <div className="container mx-auto px-6 py-10 space-y-8 min-h-screen">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col space-y-1 border-b border-border pb-5">
+        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+          <GraduationCap className="w-8 h-8 text-primary" />
+          My Enrolled Courses
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          Track your active courses, progress, and upcoming tasks.
+        </p>
       </div>
 
+      {/* CONTENT SECTION */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex flex-col space-y-3">
               <Skeleton className="h-[180px] w-full rounded-xl" />
-              <div className="p-2 space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : courses.length > 0 ? (
-        <>
+        <div className="space-y-8 animate-in fade-in-50 duration-500">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentCourses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </div>
 
+          {/* PAGINATION */}
           {totalPages > 1 && (
-            <div className="mt-12 flex flex-wrap justify-center gap-2 items-center">
+            <div className="flex flex-wrap justify-center gap-2 items-center pt-4 border-t border-border/50">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePrevious}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 shadow-sm"
               >
                 <ChevronLeft className="w-4 h-4" /> Previous
               </Button>
@@ -119,8 +126,8 @@ export default function TraineeMyCoursesPage() {
                       onClick={() => handlePageClick(page)}
                       className={`w-9 h-9 p-0 ${
                         currentPage === page
-                          ? "pointer-events-none shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "pointer-events-none shadow-md"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       }`}
                     >
                       {page}
@@ -128,7 +135,7 @@ export default function TraineeMyCoursesPage() {
                   )
                 )}
               </div>
-              <span className="sm:hidden text-sm text-muted-foreground mx-2">
+              <span className="sm:hidden text-sm text-muted-foreground mx-2 font-medium">
                 Page {currentPage} of {totalPages}
               </span>
 
@@ -137,23 +144,25 @@ export default function TraineeMyCoursesPage() {
                 size="sm"
                 onClick={handleNext}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 shadow-sm"
               >
                 Next <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           )}
-        </>
+        </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-24 bg-muted/30 rounded-xl border border-dashed border-border">
-          <div className="p-4 bg-background rounded-full mb-4 shadow-sm border border-border">
-            <FolderOpen className="w-10 h-10 text-muted-foreground/50" />
+        /* EMPTY STATE */
+        <div className="flex flex-col items-center justify-center py-24 bg-card rounded-xl border border-dashed border-border shadow-sm">
+          <div className="p-4 bg-muted/50 rounded-full mb-4">
+            <FolderOpen className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-1">
             No courses found
           </h3>
           <p className="text-muted-foreground text-sm max-w-xs text-center">
-            You haven&apos;t enrolled in any courses yet.
+            You are not currently enrolled in any courses. Check back later or
+            contact your supervisor.
           </p>
         </div>
       )}
