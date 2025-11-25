@@ -2,13 +2,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Activity, BarChart3, Loader2, Plus } from "lucide-react";
+import { Users, Activity, BarChart3, Loader2 } from "lucide-react";
 import { supervisorApi } from "@/lib/supervisorApi";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SupervisorCourseDataTable } from "./course-data-table";
 import { getColumns } from "./course-columns";
-import { CourseStatus, DashboardCourse, DashboardStats } from "@/types/course";
+import { DashboardCourse, DashboardStats } from "@/types/course";
 import { OverviewSection } from "./overview-section";
 
 const StatCard = ({

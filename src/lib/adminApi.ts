@@ -1,5 +1,5 @@
 import axiosClient from "@/lib/axiosClient";
-import { DashboardCourse } from "@/types/course";
+import { DashboardCourse, DashboardStats } from "@/types/course";
 import { User } from "@/types/user";
 
 // --- INTERFACES ---
@@ -22,10 +22,10 @@ export interface CreateCoursePayload {
   link_to_course?: string;
   image?: File | null; // Sử dụng kiểu File cho upload ảnh
   status?: number; // 0: Not Started, 1: In Progress...
-  
+
   // Danh sách ID (nếu tạo luôn môn học/supervisor kèm theo)
-  subjects?: number[]; 
-  supervisors?: number[]; 
+  subjects?: number[];
+  supervisors?: number[];
 }
 
 export interface AdminCourseSubject {
@@ -54,27 +54,40 @@ export const adminApi = {
     return axiosClient.get<AdminCourseDetail>(`/api/admin/courses/${id}/`);
   },
   updateCourse(id: number, data: Partial<DashboardCourse>) {
-    return axiosClient.patch<DashboardCourse>(`/api/admin/courses/${id}/`, data);
+    return axiosClient.patch<DashboardCourse>(
+      `/api/admin/courses/${id}/`,
+      data
+    );
   },
   getAllCourses() {
     return axiosClient.get<DashboardCourse[]>("/api/admin/courses/");
   },
-  
+
   // --- TRAINEES & SUPERVISORS (Giữ nguyên) ---
   getTrainees(courseId: number) {
     return axiosClient.get<User[]>(`/api/admin/courses/${courseId}/trainees/`);
   },
   addTrainees(courseId: number, traineeIds: number[]) {
-    return axiosClient.post(`/api/admin/courses/${courseId}/add-trainees/`, { trainee_ids: traineeIds });
+    return axiosClient.post(`/api/admin/courses/${courseId}/add-trainees/`, {
+      trainee_ids: traineeIds,
+    });
   },
   removeTrainee(courseId: number, traineeId: number) {
-    return axiosClient.delete(`/api/admin/courses/${courseId}/remove-trainee/`, { data: { id: traineeId } });
+    return axiosClient.delete(
+      `/api/admin/courses/${courseId}/remove-trainee/`,
+      { data: { id: traineeId } }
+    );
   },
   addSupervisors(courseId: number, supervisorIds: number[]) {
-    return axiosClient.post(`/api/admin/courses/${courseId}/add-supervisors/`, { supervisor_ids: supervisorIds });
+    return axiosClient.post(`/api/admin/courses/${courseId}/add-supervisors/`, {
+      supervisor_ids: supervisorIds,
+    });
   },
   removeSupervisor(courseId: number, supervisorId: number) {
-    return axiosClient.delete(`/api/admin/courses/${courseId}/remove-supervisor/`, { data: { id: supervisorId } });
+    return axiosClient.delete(
+      `/api/admin/courses/${courseId}/remove-supervisor/`,
+      { data: { id: supervisorId } }
+    );
   },
 
   // --- SUBJECTS & TASKS (CẬP NHẬT PHẦN NÀY) ---
@@ -86,12 +99,17 @@ export const adminApi = {
 
   // 2. Add Subject vào Course
   addSubject(courseId: number, data: any) {
-    return axiosClient.post(`/api/admin/courses/${courseId}/add-subject/`, data);
+    return axiosClient.post(
+      `/api/admin/courses/${courseId}/add-subject/`,
+      data
+    );
   },
 
   // 3. Get Course Subjects
   getCourseSubjects(courseId: number) {
-    return axiosClient.get<AdminCourseSubject[]>(`/api/admin/courses/${courseId}/subjects/`);
+    return axiosClient.get<AdminCourseSubject[]>(
+      `/api/admin/courses/${courseId}/subjects/`
+    );
   },
 
   // 4. Update Course Subject info
@@ -101,12 +119,18 @@ export const adminApi = {
 
   // 5. Remove Subject
   removeSubject(courseId: number, courseSubjectId: number) {
-    return axiosClient.delete(`/api/admin/courses/${courseId}/remove-subject/`, { data: { id: courseSubjectId } });
+    return axiosClient.delete(
+      `/api/admin/courses/${courseId}/remove-subject/`,
+      { data: { id: courseSubjectId } }
+    );
   },
 
   // 6. Reorder
   reorderSubjects(courseId: number, items: { id: number; position: number }[]) {
-    return axiosClient.post(`/api/admin/courses/${courseId}/reorder-subjects/`, { items });
+    return axiosClient.post(
+      `/api/admin/courses/${courseId}/reorder-subjects/`,
+      { items }
+    );
   },
 
   // 7. ADD TASK (Fix lỗi dấu +)
@@ -124,11 +148,11 @@ export const adminApi = {
     formData.append("name", payload.name);
     formData.append("start_date", payload.start_date);
     formData.append("finish_date", payload.finish_date);
-    
+
     if (payload.link_to_course) {
       formData.append("link_to_course", payload.link_to_course);
     }
-    
+
     // Mặc định status là 0 (Not Started) nếu không truyền
     if (payload.status !== undefined) {
       formData.append("status", payload.status.toString());
@@ -155,11 +179,15 @@ export const adminApi = {
     }
 
     // 4. Gửi Request
-    return axiosClient.post<DashboardCourse>("/api/admin/courses/create/", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // Bắt buộc để upload file
-      },
-    });
+    return axiosClient.post<DashboardCourse>(
+      "/api/admin/courses/create/",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // Bắt buộc để upload file
+        },
+      }
+    );
   },
 
   deleteCourse(id: number) {
@@ -172,5 +200,33 @@ export const adminApi = {
 
   deleteTask(taskId: number) {
     return axiosClient.delete(`/api/admin/tasks/${taskId}/detail/`);
+  },
+
+  async getStats(): Promise<DashboardStats> {
+    try {
+      const res = await axiosClient.get<any>("/api/admin/stats/");
+      const data = res.data?.data || res.data;
+
+      return {
+        total_supervisors: data.total_supervisors || 0,
+        total_trainees: data.total_trainees || 0,
+        active_courses: data.active_courses || 0,
+        completion_rate: data.completion_rate || 0,
+        chart_data: Array.isArray(data.chart_data) ? data.chart_data : [],
+        recent_activities: Array.isArray(data.recent_activities)
+          ? data.recent_activities
+          : [],
+      };
+    } catch (error) {
+      console.error("Error fetching stats", error);
+      return {
+        total_supervisors: 0,
+        total_trainees: 0,
+        active_courses: 0,
+        completion_rate: 0,
+        chart_data: [],
+        recent_activities: [],
+      };
+    }
   },
 };
