@@ -18,9 +18,11 @@ import {
   Users,
   Eye,
   UserCheck,
+  ExternalLink,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 const getInitials = (name: string) => {
   return name
@@ -168,12 +170,21 @@ export function CourseDetailDialog({ course }: CourseDetailDialogProps) {
         </div>
 
         <div className="flex justify-end gap-2">
-          {/* --- SỬA Ở ĐÂY: Dùng DialogClose bọc Button --- */}
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Close
+            </Button>
           </DialogClose>
-          {/* ---------------------------------------------- */}
-          <Button>Go to Full Details</Button>
+          <Button
+            asChild
+            className="cursor-pointer font-medium"
+          >
+            <Link
+              href={`/admin/courses/${course.id}`}
+            >
+              <ExternalLink className="mr-2 h-4 w-4" /> View Details
+            </Link>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

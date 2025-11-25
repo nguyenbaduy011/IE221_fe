@@ -56,15 +56,15 @@ export default function NewCategoryPage() {
 
     try {
       await axiosClient.post("/api/supervisor/categories/", payload);
-      toast.success("Tạo danh mục thành công");
+      toast.success("Category created successfully");
       router.push("/admin/master-data/categories");
     } catch (error: any) {
       console.log("Error Response:", error.response?.data);
 
-      const msg = error.response?.data?.message || "Lỗi tạo danh mục";
+      const msg = error.response?.data?.message || "Failed to create category";
       if (error.response?.data && typeof error.response.data === "object") {
         const detail = JSON.stringify(error.response.data);
-        toast.error(`Lỗi: ${detail}`);
+        toast.error(`Error: ${detail}`);
       } else {
         toast.error(msg);
       }
@@ -75,29 +75,29 @@ export default function NewCategoryPage() {
     <div className="max-w-3xl mx-auto py-6">
       <Card>
         <CardHeader>
-          <CardTitle>Tạo Danh mục mới</CardTitle>
+          <CardTitle>Create New Category</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Tên danh mục */}
+              {/* Category Name */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Tên danh mục <span className="text-destructive">*</span>
+                      Category Name <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Nhập tên danh mục..." {...field} />
+                      <Input placeholder="Enter category name..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Danh sách môn học */}
+              {/* Subject List */}
               <SubjectListEditor
                 control={form.control}
                 allSubjects={allSubjects}
@@ -109,9 +109,9 @@ export default function NewCategoryPage() {
                   variant="outline"
                   onClick={() => router.back()}
                 >
-                  Hủy
+                  Cancel
                 </Button>
-                <Button type="submit">Thêm</Button>
+                <Button type="submit">Create</Button>
               </div>
             </form>
           </Form>

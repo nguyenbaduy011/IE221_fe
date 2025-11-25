@@ -32,17 +32,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
             ? "/trainee/courses"
             : user?.role === "ADMIN"
               ? "/admin/dashboard"
-            : "/";
+              : "/";
       router.push(redirectTo);
       return;
     }
 
     if (isAuthenticated && !isPublic) {
       if (pathname.startsWith("/admin") && user?.role !== "ADMIN") {
-        router.push("/");
+        router.push("/admin/dashboard");
       }
       if (pathname.startsWith("/supervisor") && user?.role !== "SUPERVISOR") {
-        router.push("/");
+        router.push("/supervisor/dashboard");
       }
     }
   }, [isLoading, isAuthenticated, user, pathname, router]);

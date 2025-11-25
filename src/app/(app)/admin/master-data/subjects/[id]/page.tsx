@@ -22,12 +22,14 @@ export default function SubjectDetailPage() {
 
   const fetchDetail = async () => {
     try {
-      const res = await axiosClient.get(`/api/supervisor/subjects/${params.id}/`);
+      const res = await axiosClient.get(
+        `/api/supervisor/subjects/${params.id}/`
+      );
       const data = res.data.data || res.data;
       setSubject(data);
     } catch (error) {
       console.error(error);
-      toast.error("Không thể tải thông tin môn học");
+      toast.error("Failed to load subject details");
       router.push("/admin/master-data/subjects");
     } finally {
       setLoading(false);
@@ -54,7 +56,11 @@ export default function SubjectDetailPage() {
   }
 
   if (!subject) {
-    return <div className="text-center p-10 text-muted-foreground">Không tìm thấy môn học</div>;
+    return (
+      <div className="text-center p-10 text-muted-foreground">
+        Subject not found
+      </div>
+    );
   }
 
   return (
@@ -66,13 +72,13 @@ export default function SubjectDetailPage() {
           onClick={() => router.back()}
           className="cursor-pointer pl-0 hover:bg-transparent hover:text-primary transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại danh sách
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back to list
         </Button>
 
         {/* Nút Sửa chỉ hiện khi đang ở chế độ Xem */}
         {!isEditing && (
           <Button onClick={() => setIsEditing(true)} className="cursor-pointer">
-            <Pencil className="w-4 h-4 mr-2" /> Chỉnh sửa
+            <Pencil className="w-4 h-4 mr-2" /> Edit
           </Button>
         )}
       </div>

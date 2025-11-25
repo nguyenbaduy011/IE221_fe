@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm } from "react-hook-form"; // Chỉ import useForm
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { adminApi, Subject } from "@/lib/adminApi";
 import { userApi } from "@/lib/userApi";
 import { User, UserRole } from "@/types/user";
 import { Loader2, Upload, X, ArrowLeft, Save } from "lucide-react";
-import dayjs from "dayjs";
+
+import { courseSchema, CourseFormValues } from "@/validations/courseValidation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,29 +25,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-const formSchema = z
-  .object({
-    name: z.string().min(3, "Course's name have at least 3 letters"),
-    link_to_course: z.string().url("Unvalid link").optional().or(z.literal("")),
-    start_date: z.string().refine((val) => val !== "", "Choose a Start Date"),
-    finish_date: z.string().refine((val) => val !== "", "Choose a Finish Date"),
-    subject_ids: z.array(z.number()).default([]),
-    supervisor_ids: z.array(z.number()).min(1, "Have at least 1 trainer"),
-  })
-  .refine(
-    (data) => {
-      const start = dayjs(data.start_date);
-      const end = dayjs(data.finish_date);
-      return end.isAfter(start);
-    },
-    {
-      message: "Finish Date have to set after Start Date",
-      path: ["finish_date"],
-    }
-  );
-
-type FormValues = z.infer<typeof formSchema>;
+import { toast } from "sonner";
+import Image from "next/image";
 
 export default function CreateCoursePage() {
   const router = useRouter();
@@ -59,8 +39,8 @@ export default function CreateCoursePage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<CourseFormValues>({
+    resolver: zodResolver(courseSchema),
     defaultValues: {
       name: "",
       link_to_course: "",
@@ -79,11 +59,9 @@ export default function CreateCoursePage() {
           adminApi.getAllSubjects(),
           userApi.getAll(),
         ]);
-
         const subjectsData =
           (subjectsRes.data as any).data || subjectsRes.data || [];
         setAvailableSubjects(Array.isArray(subjectsData) ? subjectsData : []);
-
         const usersData = (usersRes.data as any).data || usersRes.data || [];
         const allUsers = Array.isArray(usersData) ? usersData : [];
         const supervisors = allUsers.filter(
@@ -112,10 +90,9 @@ export default function CreateCoursePage() {
     setPreviewUrl(null);
   };
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: CourseFormValues) => {
     try {
       setIsSubmitting(true);
-
       const payload = {
         name: values.name,
         start_date: values.start_date,
@@ -128,24 +105,19 @@ export default function CreateCoursePage() {
       };
 
       const res = await adminApi.createCourse(payload);
-
       const responseBody = (res as any).data || res;
-
       const newCourseId = responseBody.id || responseBody.data?.id;
 
-      console.log("Full Response:", responseBody);
-      console.log("New Course ID:", newCourseId);
-
       if (newCourseId) {
-        alert("Success: Created new course");
-        // Chuyển hướng đến trang chi tiết (đường dẫn tuyệt đối)
+        toast.success("Success: Created new course");
         router.push(`/admin/courses/${newCourseId}`);
       } else {
-        console.warn("Can't find ID. Return to course list");
+        toast.error("Can't find ID. Return to course list");
         router.push("/admin/courses");
       }
     } catch (error) {
       console.error("Submit Error:", error);
+      toast.error("Something went wrong");
     } finally {
       setIsSubmitting(false);
     }
@@ -170,7 +142,7 @@ export default function CreateCoursePage() {
             Create new Course
           </h1>
           <p className="text-muted-foreground text-sm">
-            Fill infomation to create Course.
+            Fill information to create Course.
           </p>
         </div>
       </div>
@@ -178,7 +150,6 @@ export default function CreateCoursePage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* THÔNG TIN CƠ BẢN */}
             <div className="md:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
@@ -191,11 +162,12 @@ export default function CreateCoursePage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Course's name <span className="text-red-500">*</span>
+                          Course&apos;s name{" "}
+                          <span className="text-destructive">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Ví dụ: ReactJS Advanced 2024"
+                            placeholder="Example: ReactJS Advanced 2024"
                             {...field}
                           />
                         </FormControl>
@@ -210,7 +182,11 @@ export default function CreateCoursePage() {
                       <FormItem>
                         <FormLabel>Document link</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://..." {...field} />
+                          <Input
+                            placeholder="https://..."
+                            {...field}
+                            value={field.value ?? ""}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -223,7 +199,7 @@ export default function CreateCoursePage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Start date <span className="text-red-500">*</span>
+                            Start date <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -238,7 +214,7 @@ export default function CreateCoursePage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Finish date <span className="text-red-500">*</span>
+                            Finish date <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -250,64 +226,57 @@ export default function CreateCoursePage() {
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Subject ({availableSubjects.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-                    <FormField
-                      control={form.control}
-                      name="subject_ids"
-                      render={() => (
-                        <FormItem>
-                          {availableSubjects.map((subject) => (
-                            <FormField
-                              key={subject.id}
-                              control={form.control}
-                              name="subject_ids"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2 border-b last:border-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(
-                                        subject.id
-                                      )}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([
-                                              ...field.value,
-                                              subject.id,
-                                            ])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== subject.id
-                                              )
-                                            );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal cursor-pointer flex-1">
-                                    {subject.name}{" "}
-                                    <span className="text-xs text-muted-foreground">
-                                      ({subject.estimated_time_days} days)
-                                    </span>
-                                  </FormLabel>
-                                </FormItem>
-                              )}
-                            />
-                          ))}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-2">
+                      {availableSubjects.map((subject) => (
+                        <FormField
+                          key={subject.id}
+                          control={form.control}
+                          name="subject_ids"
+                          render={({ field }) => {
+                            return (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2 border-b last:border-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(subject.id)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([
+                                            ...field.value,
+                                            subject.id,
+                                          ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== subject.id
+                                            )
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer flex-1">
+                                  {subject.name}{" "}
+                                  <span className="text-xs text-muted-foreground">
+                                    ({subject.estimated_time_days} days)
+                                  </span>
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage>
+                      {form.formState.errors.subject_ids?.message}
+                    </FormMessage>
                   </ScrollArea>
                 </CardContent>
               </Card>
             </div>
-
-            {/* CỘT PHẢI: ẢNH & SUPERVISOR */}
             <div className="space-y-6">
               <Card>
                 <CardHeader>
@@ -318,8 +287,7 @@ export default function CreateCoursePage() {
                     <div className="relative w-full aspect-video rounded-md border border-dashed flex items-center justify-center overflow-hidden bg-muted/30">
                       {previewUrl ? (
                         <>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={previewUrl}
                             alt="Preview"
                             className="w-full h-full object-cover"
@@ -355,61 +323,57 @@ export default function CreateCoursePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Trainer <span className="text-red-500">*</span>
+                    Trainer <span className="text-destructive">*</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[250px] w-full rounded-md border p-4">
-                    <FormField
-                      control={form.control}
-                      name="supervisor_ids"
-                      render={() => (
-                        <FormItem>
-                          {availableSupervisors.length === 0 && (
-                            <p className="text-center text-sm text-muted-foreground">
-                              No chosen Trainer.
-                            </p>
+                    {availableSupervisors.length === 0 && (
+                      <p className="text-center text-sm text-muted-foreground">
+                        No chosen Trainer.
+                      </p>
+                    )}
+                    <div className="space-y-2">
+                      {availableSupervisors.map((user) => (
+                        <FormField
+                          key={user.id}
+                          control={form.control}
+                          name="supervisor_ids"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-2 border-b last:border-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(user.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          user.id,
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== user.id
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <div className="flex flex-col">
+                                <FormLabel className="font-normal cursor-pointer">
+                                  {user.full_name}
+                                </FormLabel>
+                                <span className="text-xs text-muted-foreground">
+                                  {user.email}
+                                </span>
+                              </div>
+                            </FormItem>
                           )}
-                          {availableSupervisors.map((user) => (
-                            <FormField
-                              key={user.id}
-                              control={form.control}
-                              name="supervisor_ids"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-2 border-b last:border-0">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(user.id)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([
-                                              ...field.value,
-                                              user.id,
-                                            ])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== user.id
-                                              )
-                                            );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <div className="flex flex-col">
-                                    <FormLabel className="font-normal cursor-pointer">
-                                      {user.full_name}
-                                    </FormLabel>
-                                    <span className="text-xs text-muted-foreground">
-                                      {user.email}
-                                    </span>
-                                  </div>
-                                </FormItem>
-                              )}
-                            />
-                          ))}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        />
+                      ))}
+                    </div>
+                    <FormMessage>
+                      {form.formState.errors.supervisor_ids?.message}
+                    </FormMessage>
                   </ScrollArea>
                 </CardContent>
               </Card>
