@@ -137,12 +137,8 @@ export default function CreateCoursePage() {
       console.log("New Course ID:", newCourseId);
 
       if (newCourseId) {
-<<<<<<< Updated upstream
-        alert("Thành công: Đã tạo khóa học mới.");
-=======
         alert("Success: Created new course");
         // Chuyển hướng đến trang chi tiết (đường dẫn tuyệt đối)
->>>>>>> Stashed changes
         router.push(`/admin/courses/${newCourseId}`);
       } else {
         console.warn("Can't find ID. Return to course list");

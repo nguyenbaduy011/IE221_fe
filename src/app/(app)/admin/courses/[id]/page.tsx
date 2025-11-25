@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   DragDropContext,
   Droppable,
@@ -20,80 +20,43 @@ import {
   X,
   BookOpen,
   Users,
+  AlertCircle,
 } from "lucide-react";
+
+// APIs & Libs
 import {
   adminApi,
   AdminCourseDetail,
   AdminCourseSubject,
-  Subject,
 } from "@/lib/adminApi";
 import { userApi } from "@/lib/userApi";
+import axiosClient from "@/lib/axiosClient";
 import { User } from "@/types/user";
 import dayjs from "dayjs";
+// [UX] Import Toast và Toaster để cấu hình vị trí
+import { toast, Toaster } from "sonner";
 
+// UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// --- HELPERS ---
-const getInitials = (name: string) => {
-  return name
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-};
-
-// --- [NEW] STATUS BADGE COMPONENT (Giống admin-course-columns) ---
-const StatusBadge = ({ status }: { status: number }) => {
-  switch (status) {
-    case 0: // Not Started
-      return (
-        <Badge
-          variant="outline"
-          className="bg-muted text-muted-foreground border-border hover:bg-muted/80"
-        >
-          Not Started
-        </Badge>
-      );
-    case 1: // In Progress
-      return (
-        <Badge
-          variant="outline"
-          className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
-        >
-          In Progress
-        </Badge>
-      );
-    case 2: // Finished
-      return (
-        <Badge
-          variant="outline"
-          className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
-        >
-          Finished
-        </Badge>
-      );
-    default:
-      return <Badge variant="secondary">Unknown</Badge>;
-  }
-};
-
+// --- TYPES ---
+type UserRole = "ADMIN" | "SUPERVISOR" | "TRAINEE";
 type EditableSubjectField =
   | "estimated_time_days"
   | "name"
@@ -107,25 +70,128 @@ interface CourseEditForm {
   link_to_course: string;
 }
 
+interface ConfirmModalState {
+  isOpen: boolean;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+}
+
+// --- HELPERS ---
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const getImageUrl = (path: string | null | undefined) => {
+  if (!path) return "";
+  if (path.startsWith("http") || path.startsWith("https")) return path;
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:8000";
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${backendUrl}${cleanPath}`;
+};
+
+const StatusBadge = ({ status }: { status: number }) => {
+  switch (status) {
+    case 0:
+      return (
+        <Badge
+          variant="outline"
+          className="bg-muted text-muted-foreground border-border"
+        >
+          Not Started
+        </Badge>
+      );
+    case 1:
+      return (
+        <Badge
+          variant="outline"
+          className="bg-blue-100 text-blue-700 border-blue-200"
+        >
+          In Progress
+        </Badge>
+      );
+    case 2:
+      return (
+        <Badge
+          variant="outline"
+          className="bg-green-100 text-green-700 border-green-200"
+        >
+          Finished
+        </Badge>
+      );
+    default:
+      return <Badge variant="secondary">Unknown</Badge>;
+  }
+};
+
+// --- DYNAMIC API HELPER ---
+const getDynamicApi = (role: UserRole) => {
+  const prefix = role === "ADMIN" ? "/api/admin" : "/api/supervisor";
+  return {
+    getDetail: (id: number) => axiosClient.get(`${prefix}/courses/${id}/`),
+    updateCourse: (id: number, data: any) =>
+      axiosClient.patch(`${prefix}/courses/${id}/update/`, data),
+    getTrainees: (id: number) =>
+      role === "ADMIN"
+        ? axiosClient.get(`${prefix}/courses/${id}/trainees/`)
+        : axiosClient.get(`${prefix}/courses/${id}/students/`),
+    addTrainees: (id: number, ids: number[]) =>
+      axiosClient.post(`${prefix}/courses/${id}/add-trainees/`, {
+        trainee_ids: ids,
+      }),
+    removeTrainee: (id: number, userId: number) =>
+      axiosClient.delete(`${prefix}/courses/${id}/remove-trainee/`, {
+        data: { id: userId },
+      }),
+    addSupervisors: (id: number, ids: number[]) =>
+      axiosClient.post(`${prefix}/courses/${id}/add-supervisors/`, {
+        supervisor_ids: ids,
+      }),
+    removeSupervisor: (id: number, userId: number) =>
+      axiosClient.delete(`${prefix}/courses/${id}/remove-supervisor/`, {
+        data: { id: userId },
+      }),
+    getSubjects: (id: number) =>
+      axiosClient.get(`${prefix}/courses/${id}/subjects/`),
+    addSubject: (id: number, data: any) =>
+      axiosClient.post(`${prefix}/courses/${id}/add-subject/`, data),
+    removeSubject: (id: number, subId: number) =>
+      axiosClient.delete(`${prefix}/courses/${id}/remove-subject/`, {
+        data: { id: subId },
+      }),
+    updateCourseSubject: (id: number, data: any) =>
+      axiosClient.patch(`/api/admin/course-subjects/${id}/`, data),
+    reorderSubjects: (id: number, items: any) =>
+      axiosClient.post(`${prefix}/courses/${id}/reorder-subjects/`, { items }),
+    addTask: (id: number, csId: number, name: string) =>
+      axiosClient.post(`${prefix}/courses/${id}/add-task/`, {
+        course_subject_id: csId,
+        name,
+      }),
+    updateTask: (taskId: number, name: string) =>
+      axiosClient.patch(`${prefix}/tasks/${taskId}/detail/`, { name }),
+    deleteTask: (taskId: number) =>
+      axiosClient.delete(`${prefix}/tasks/${taskId}/detail/`),
+  };
+};
+
+// --- COMPONENT: USER SEARCH ---
 const UserSearchDialog = ({
   isOpen,
   onClose,
   onSelect,
   type,
   excludeIds = [],
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (id: number) => void;
-  type: "Supervisor" | "Trainee";
-  excludeIds?: number[];
-}) => {
+}: any) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-
-  const displayLabel = type === "Supervisor" ? "Trainer" : type;
 
   useEffect(() => {
     if (isOpen) {
@@ -136,7 +202,6 @@ const UserSearchDialog = ({
           const data =
             (res.data as any).data || (res.data as any).results || res.data;
           const safeData = Array.isArray(data) ? data : [];
-          setAllUsers(safeData);
           setSearchResults(safeData.filter((u) => !excludeIds.includes(u.id)));
         } catch (error) {
           console.error("Failed to fetch users", error);
@@ -148,35 +213,26 @@ const UserSearchDialog = ({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!allUsers.length) return;
-
-    const lowerTerm = searchTerm.toLowerCase();
+  const filteredResults = useMemo(() => {
+    const lower = searchTerm.toLowerCase();
     const targetRole = type.toUpperCase();
-
-    const filtered = allUsers.filter((user) => {
-      const roleMatch = user.role ? user.role === targetRole : true;
-      const nameMatch = user.full_name?.toLowerCase().includes(lowerTerm);
-      const emailMatch = user.email?.toLowerCase().includes(lowerTerm);
-      const notInCourse = !excludeIds.includes(user.id);
-
-      return roleMatch && (nameMatch || emailMatch) && notInCourse;
-    });
-
-    setSearchResults(filtered);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, allUsers, type, JSON.stringify(excludeIds)]);
+    return searchResults.filter(
+      (u) =>
+        (!u.role || u.role === targetRole) &&
+        (u.full_name?.toLowerCase().includes(lower) ||
+          u.email?.toLowerCase().includes(lower))
+    );
+  }, [searchTerm, searchResults, type]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] z-[100]">
         <DialogHeader>
-          <DialogTitle>Add {displayLabel}</DialogTitle>
-          <DialogDescription>
-            Search for a {displayLabel.toLowerCase()} by name or email.
-          </DialogDescription>
+          <DialogTitle>
+            Add {type === "Supervisor" ? "Trainer" : type}
+          </DialogTitle>
+          <DialogDescription>Search by name or email.</DialogDescription>
         </DialogHeader>
-
         <div className="space-y-4 mt-2">
           <div className="flex gap-2">
             <Input
@@ -185,32 +241,23 @@ const UserSearchDialog = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <Button disabled={isSearching} variant="ghost" size="icon">
-              {isSearching ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Search className="w-4 h-4" />
-              )}
+              <Search className="w-4 h-4" />
             </Button>
           </div>
-
           <ScrollArea className="h-[200px] border border-border rounded-md p-2">
-            {searchResults.length === 0 ? (
+            {filteredResults.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground py-4">
-                {isSearching
-                  ? "Loading users..."
-                  : "No users found matching your criteria."}
+                No users found.
               </p>
             ) : (
               <div className="space-y-2">
-                {searchResults.map((u) => (
+                {filteredResults.map((u) => (
                   <div
                     key={u.id}
-                    className="flex items-center justify-between p-2 hover:bg-accent rounded-md border border-transparent hover:border-border transition-colors"
+                    className="flex justify-between items-center p-2 hover:bg-accent rounded-md border border-transparent hover:border-border"
                   >
                     <div className="overflow-hidden">
-                      <p className="font-medium truncate text-foreground">
-                        {u.full_name}
-                      </p>
+                      <p className="font-medium truncate">{u.full_name}</p>
                       <p className="text-xs text-muted-foreground truncate">
                         {u.email}
                       </p>
@@ -236,78 +283,72 @@ const UserSearchDialog = ({
   );
 };
 
+// --- COMPONENT: PEOPLE LIST ---
 const PeopleList = ({
   title,
   data,
   onAdd,
-  onRemove,
+  onDeleteClick,
   type,
-}: {
-  title: string;
-  data: User[];
-  onAdd: (id: number) => void;
-  onRemove: (id: number) => void;
-  type: "Supervisor" | "Trainee";
-}) => {
+  canEdit,
+}: any) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const safeData = Array.isArray(data) ? data : [];
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-  const displayLabel = type === "Supervisor" ? "Trainer" : type;
-
-  const existingIds = useMemo(() => {
-    return safeData.map((user) => user.id);
-  }, [safeData]);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-foreground">
-          {title} ({safeData.length})
+        <h3 className="text-lg font-semibold">
+          {title} ({data.length})
         </h3>
-
-        <Button size="sm" onClick={() => setIsDialogOpen(true)}>
-          <UserPlus className="w-4 h-4 mr-2" /> Add {displayLabel}
-        </Button>
-
+        {canEdit && (
+          <Button size="sm" onClick={() => setIsDialogOpen(true)}>
+            <UserPlus className="w-4 h-4 mr-2" /> Add{" "}
+            {type === "Supervisor" ? "Trainer" : type}
+          </Button>
+        )}
         <UserSearchDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           onSelect={onAdd}
           type={type}
-          excludeIds={existingIds}
+          excludeIds={data.map((u: any) => u.id)}
         />
       </div>
 
       <div className="border border-border rounded-md divide-y divide-border bg-card">
-        {safeData.map((user) => (
+        {data.map((user: User) => (
           <div
             key={user.id}
-            className="p-3 flex justify-between items-center hover:bg-muted/50 transition-colors"
+            className="p-3 flex justify-between items-center hover:bg-muted/50"
           >
-            <div>
-              <p className="font-medium text-foreground">
-                {user.full_name || "No Name"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                ID: {user.id} • {user.email}
-              </p>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>
+                  {getInitials(user.full_name || user.email)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-sm">
+                  {user.full_name || "No Name"}
+                </p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-500 hover:text-red-600 hover:bg-red-100/10"
-              onClick={() => onRemove(user.id)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-600 hover:bg-red-100/10"
+                onClick={() => onDeleteClick(user.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         ))}
-        {safeData.length === 0 && (
+        {data.length === 0 && (
           <div className="p-4 text-center text-muted-foreground">
-            No {displayLabel.toLowerCase()}s added.
+            No {title.toLowerCase()} added.
           </div>
         )}
       </div>
@@ -315,44 +356,34 @@ const PeopleList = ({
   );
 };
 
-interface SubjectsTabProps {
+// --- COMPONENT: SUBJECTS TAB ---
+const SubjectsTab = ({
+  courseId,
+  isEditing,
+  api,
+  setConfirmModal,
+}: {
   courseId: number;
   isEditing: boolean;
-}
-
-const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
+  api: any;
+  setConfirmModal: any;
+}) => {
   const [subjects, setSubjects] = useState<AdminCourseSubject[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [activeAddTab, setActiveAddTab] = useState<"create" | "existing">(
-    "create"
-  );
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newSubjectDays, setNewSubjectDays] = useState(1);
-  const [existingSubjects, setExistingSubjects] = useState<Subject[]>([]);
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(
-    null
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
 
   const fetchSubjects = async () => {
     try {
-      const res = await adminApi.getCourseSubjects(courseId);
-      let data = res.data;
-      if (data && !Array.isArray(data)) {
-        if ((data as any).results) data = (data as any).results;
-        else if ((data as any).data) data = (data as any).data;
-      }
-
-      if (Array.isArray(data)) {
-        setSubjects(data.sort((a, b) => a.position - b.position));
-      } else {
-        setSubjects([]);
-      }
+      const res = await api.getSubjects(courseId);
+      const data =
+        (res.data as any).data || (res.data as any).results || res.data;
+      if (Array.isArray(data))
+        setSubjects(data.sort((a: any, b: any) => a.position - b.position));
     } catch (error) {
-      console.error("Failed to fetch subjects:", error);
-      setSubjects([]);
+      console.error(error);
+      toast.error("Failed to load subjects");
     } finally {
       setLoading(false);
     }
@@ -362,118 +393,20 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     fetchSubjects();
   }, [courseId]);
 
-  const fetchAllSubjects = async () => {
-    try {
-      const res = await adminApi.getAllSubjects({ search: searchTerm });
-      const data =
-        (res.data as any).data || (res.data as any).results || res.data;
-      setExistingSubjects(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Failed to fetch available subjects", error);
-    }
-  };
-
-  useEffect(() => {
-    if (isAddDialogOpen && activeAddTab === "existing") {
-      const timeoutId = setTimeout(() => {
-        fetchAllSubjects();
-      }, 500);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [searchTerm, isAddDialogOpen, activeAddTab]);
-
   const handleAddSubject = async () => {
-    setIsAdding(true);
     try {
-      let payload = {};
-
-      if (activeAddTab === "create") {
-        if (!newSubjectName) return;
-        payload = {
-          name: newSubjectName,
-          estimated_time_days: newSubjectDays,
-          max_score: 10,
-          tasks: ["Introduction Task"],
-        };
-      } else {
-        if (!selectedSubjectId) return;
-        payload = { subject_id: selectedSubjectId };
-      }
-
-      await adminApi.addSubject(courseId, payload);
-
+      if (!newSubjectName) return;
+      await api.addSubject(courseId, {
+        name: newSubjectName,
+        estimated_time_days: newSubjectDays,
+        tasks: ["Introduction"],
+      });
+      toast.success("Subject added successfully");
       setIsAddDialogOpen(false);
       setNewSubjectName("");
-      setNewSubjectDays(1);
-      setSelectedSubjectId(null);
-      setSearchTerm("");
-
       fetchSubjects();
     } catch (error) {
-      alert("Failed to add subject");
-      console.error(error);
-    } finally {
-      setIsAdding(false);
-    }
-  };
-
-  const handleAddTask = async (csId: number, taskName: string) => {
-    try {
-      await adminApi.addTask(courseId, csId, taskName);
-      fetchSubjects();
-    } catch (e) {
-      console.error(e);
-      alert("Failed to add task");
-    }
-  };
-
-  const handleEditTask = async (taskId: number, currentName: string) => {
-    const newName = prompt("Nhập tên task mới:", currentName);
-    if (newName && newName !== currentName) {
-      try {
-        await adminApi.updateTask(taskId, newName);
-        fetchSubjects();
-      } catch (error) {
-        alert("Lỗi cập nhật task");
-      }
-    }
-  };
-
-  const handleDeleteTask = async (taskId: number) => {
-    if (confirm("Bạn có chắc chắn muốn xóa task này?")) {
-      try {
-        await adminApi.deleteTask(taskId);
-        fetchSubjects();
-      } catch (error) {
-        alert("Lỗi xóa task");
-      }
-    }
-  };
-
-  const onDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
-    if (!isEditing) return;
-
-    const items = Array.from(subjects);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      position: index + 1,
-    }));
-
-    setSubjects(updatedItems);
-
-    const payload = updatedItems.map((item) => ({
-      id: item.id,
-      position: item.position,
-    }));
-
-    try {
-      await adminApi.reorderSubjects(courseId, payload);
-    } catch (error) {
-      console.error("Failed to save order", error);
+      toast.error("Failed to add subject");
     }
   };
 
@@ -484,9 +417,10 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
   ) => {
     if (!isEditing) return;
     try {
-      await adminApi.updateCourseSubject(id, { [field]: value });
+      await api.updateCourseSubject(id, { [field]: value });
+      toast.success("Saved changes");
     } catch (error) {
-      alert("Failed to save changes");
+      toast.error("Failed to save changes");
     }
   };
 
@@ -500,14 +434,12 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
             tasks: [],
             estimated_time_days: 0,
           };
-
-          if (field === "name") {
+          if (field === "name")
             return {
               ...s,
               subject: { ...currentSubject, name: String(value) },
             };
-          }
-          if (field === "estimated_time_days") {
+          if (field === "estimated_time_days")
             return {
               ...s,
               subject: {
@@ -515,7 +447,6 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                 estimated_time_days: Number(value),
               },
             };
-          }
           return { ...s, [field]: value } as AdminCourseSubject;
         }
         return s;
@@ -523,24 +454,96 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
     );
   };
 
-  const handleDelete = async (csId: number) => {
-    if (!window.confirm("Remove this subject?")) return;
+  const handleAddTask = async (csId: number, taskName: string) => {
     try {
-      await adminApi.removeSubject(courseId, csId);
+      await api.addTask(courseId, csId, taskName);
+      toast.success("Task added");
+      fetchSubjects();
+    } catch (e) {
+      toast.error("Failed to add task");
+    }
+  };
+
+  const handleEditTask = async (taskId: number, currentName: string) => {
+    const newName = prompt("Rename task:", currentName);
+    if (newName && newName !== currentName) {
+      try {
+        await api.updateTask(taskId, newName);
+        toast.success("Task updated");
+        fetchSubjects();
+      } catch (error) {
+        toast.error("Failed to update task");
+      }
+    }
+  };
+
+  const executeDeleteTask = async (taskId: number) => {
+    try {
+      await api.deleteTask(taskId);
+      toast.success("Task deleted");
+      fetchSubjects();
+    } catch (error) {
+      toast.error("Failed to delete task");
+    }
+  };
+
+  const executeDeleteSubject = async (csId: number) => {
+    try {
+      await api.removeSubject(courseId, csId);
+      toast.success("Subject removed");
       setSubjects((prev) => prev.filter((s) => s.id !== csId));
     } catch (e) {
-      alert("Error removing subject");
+      toast.error("Failed to remove subject");
+    }
+  };
+
+  const confirmDeleteTask = (taskId: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Task?",
+      description: "This action cannot be undone.",
+      onConfirm: () => executeDeleteTask(taskId),
+    });
+  };
+
+  const confirmDeleteSubject = (csId: number) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Remove Subject?",
+      description: "This will remove the subject from this course.",
+      onConfirm: () => executeDeleteSubject(csId),
+    });
+  };
+
+  const onDragEnd = async (result: DropResult) => {
+    if (!result.destination || !isEditing) return;
+    const items = Array.from(subjects);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      position: index + 1,
+    }));
+    setSubjects(updatedItems);
+
+    try {
+      await api.reorderSubjects(
+        courseId,
+        updatedItems.map((i) => ({ id: i.id, position: i.position }))
+      );
+      toast.success("Order saved");
+    } catch (error) {
+      toast.error("Failed to save order");
     }
   };
 
   if (loading)
     return (
       <div className="p-4 text-center text-muted-foreground">
-        Loading subjects...
+        Loading curriculum...
       </div>
     );
-
-  const safeSubjects = Array.isArray(subjects) ? subjects : [];
 
   return (
     <div className="space-y-4 pb-20">
@@ -552,110 +555,30 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                 <Plus className="w-4 h-4 mr-1" /> Add Subject
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="z-[100]">
               <DialogHeader>
-                <DialogTitle>Add Subject</DialogTitle>
-                <DialogDescription>
-                  Add a new or existing subject.
-                </DialogDescription>
+                <DialogTitle>Create New Subject</DialogTitle>
               </DialogHeader>
-
-              <Tabs
-                defaultValue="create"
-                value={activeAddTab}
-                onValueChange={(v) => setActiveAddTab(v as any)}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="create">Create New</TabsTrigger>
-                  <TabsTrigger value="existing">Select Existing</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="create" className="space-y-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={newSubjectName}
-                      onChange={(e) => setNewSubjectName(e.target.value)}
-                      className="col-span-3 bg-background"
-                      placeholder="e.g. Advanced React"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="days" className="text-right">
-                      Est. Days
-                    </Label>
-                    <Input
-                      id="days"
-                      type="number"
-                      value={newSubjectDays}
-                      onChange={(e) =>
-                        setNewSubjectDays(Number(e.target.value))
-                      }
-                      className="col-span-3 bg-background"
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="existing" className="space-y-4">
-                  <div className="flex gap-2 mb-2">
-                    <Input
-                      placeholder="Search existing subjects..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="bg-background"
-                    />
-                    <Button variant="secondary" size="icon">
-                      <Search className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <ScrollArea className="h-[200px] border border-border rounded-md p-1 bg-muted/20">
-                    {existingSubjects.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm">
-                        <span>No subjects found.</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        {existingSubjects.map((sub) => (
-                          <div
-                            key={sub.id}
-                            onClick={() => setSelectedSubjectId(sub.id)}
-                            className={`flex items-center justify-between p-2 rounded-md cursor-pointer border transition-all ${
-                              selectedSubjectId === sub.id
-                                ? "bg-primary/10 border-primary"
-                                : "hover:bg-accent border-transparent"
-                            }`}
-                          >
-                            <div className="overflow-hidden">
-                              <p className="font-medium text-sm text-foreground truncate">
-                                {sub.name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {sub.estimated_time_days} days
-                              </p>
-                            </div>
-                            {selectedSubjectId === sub.id && (
-                              <Badge>Selected</Badge>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
-
+              <div className="space-y-3">
+                <div className="grid gap-2">
+                  <Label>Name</Label>
+                  <Input
+                    value={newSubjectName}
+                    onChange={(e) => setNewSubjectName(e.target.value)}
+                    placeholder="e.g. React Basics"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Est. Days</Label>
+                  <Input
+                    type="number"
+                    value={newSubjectDays}
+                    onChange={(e) => setNewSubjectDays(Number(e.target.value))}
+                  />
+                </div>
+              </div>
               <DialogFooter>
-                <Button onClick={handleAddSubject} disabled={isAdding}>
-                  {isAdding && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {activeAddTab === "create" ? "Create & Add" : "Add Selected"}
-                </Button>
+                <Button onClick={handleAddSubject}>Create</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -666,7 +589,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
         <div className="grid grid-cols-12 gap-2 p-3 bg-muted/50 font-semibold text-muted-foreground text-sm border-b border-border">
           <div className="col-span-1 text-center">#</div>
           <div className="col-span-5">Subject & Tasks</div>
-          <div className="col-span-3">Timeline</div>
+          <div className="col-span-3">Timeline (Start - End)</div>
           <div className="col-span-2 text-center">Est. Days</div>
           <div className="col-span-1"></div>
         </div>
@@ -679,7 +602,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                 ref={provided.innerRef}
                 className="divide-y divide-border"
               >
-                {safeSubjects.map((item, index) => (
+                {subjects.map((item, index) => (
                   <Draggable
                     key={item.id}
                     draggableId={item.id.toString()}
@@ -690,19 +613,19 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                       <div
                         ref={provided.innerRef}
                         {...provided.draggableProps}
-                        className={`grid grid-cols-12 gap-2 p-3 items-start transition-colors ${
+                        className={`grid grid-cols-12 gap-2 p-3 items-start ${
                           snapshot.isDragging
-                            ? "bg-accent shadow-lg z-10 border border-border"
+                            ? "bg-accent shadow-lg"
                             : "hover:bg-muted/30 bg-card"
                         }`}
                       >
-                        <div className="col-span-1 flex flex-col items-center justify-center pt-2">
+                        <div className="col-span-1 pt-2 text-center">
                           {isEditing ? (
                             <div
                               {...provided.dragHandleProps}
-                              className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground"
+                              className="cursor-grab"
                             >
-                              <GripVertical className="w-5 h-5" />
+                              <GripVertical className="w-5 h-5 mx-auto text-muted-foreground" />
                             </div>
                           ) : (
                             <span className="text-sm font-bold text-muted-foreground">
@@ -712,82 +635,62 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                         </div>
 
                         <div className="col-span-5 space-y-2">
-                          <div
-                            className="font-bold text-sm truncate text-foreground"
-                            title={item.subject?.name}
-                          >
-                            {item.subject?.name || "No Name"}
+                          <div className="font-bold text-sm">
+                            {isEditing ? (
+                              <Input
+                                value={item.subject?.name}
+                                onChange={(e) =>
+                                  handleLocalChange(
+                                    item.id,
+                                    "name",
+                                    e.target.value
+                                  )
+                                }
+                                className="h-8 font-bold"
+                              />
+                            ) : (
+                              item.subject?.name
+                            )}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-foreground/80">
-                                Tasks:{" "}
-                              </span>
-                              {isEditing && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 w-5 p-0 text-primary hover:text-primary/80"
-                                  onClick={() => {
-                                    const tName = prompt("Enter task name:");
-                                    if (tName) handleAddTask(item.id, tName);
-                                  }}
-                                  title="Add Task"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              )}
-                            </div>
-                            <div className="mt-2 space-y-1 pl-1">
-                              {item.subject.tasks &&
-                              item.subject.tasks.length > 0 ? (
-                                item.subject.tasks.map((t) => (
-                                  <div
-                                    key={t.id}
-                                    className="group flex items-center justify-between py-1 px-2 rounded hover:bg-muted/50 transition-colors"
-                                  >
-                                    <div className="flex items-center gap-2 overflow-hidden">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-primary/40 flex-shrink-0" />
-                                      <span
-                                        className="text-sm truncate text-foreground/90"
-                                        title={t.name}
-                                      >
-                                        {t.name}
-                                      </span>
-                                    </div>
-
-                                    {isEditing && (
-                                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-6 w-6 text-muted-foreground hover:text-primary"
-                                          onClick={() =>
-                                            handleEditTask(t.id, t.name)
-                                          }
-                                          title="Edit Task"
-                                        >
-                                          <Pencil className="w-3 h-3" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                          onClick={() => handleDeleteTask(t.id)}
-                                          title="Delete Task"
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    )}
+                          <div className="text-xs text-muted-foreground pl-1">
+                            {item.subject?.tasks?.length || 0} tasks
+                            {isEditing && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 w-5 ml-2 p-0 text-primary"
+                                onClick={() => {
+                                  const t = prompt("Task name:");
+                                  if (t) handleAddTask(item.id, t);
+                                }}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                          <div className="mt-1 pl-2 border-l-2 border-muted space-y-1">
+                            {item.subject?.tasks?.map((t) => (
+                              <div
+                                key={t.id}
+                                className="group flex justify-between text-sm py-0.5 px-2 hover:bg-muted rounded"
+                              >
+                                <span>- {t.name}</span>
+                                {isEditing && (
+                                  <div className="opacity-0 group-hover:opacity-100 flex gap-1">
+                                    <Pencil
+                                      className="w-3 h-3 cursor-pointer text-muted-foreground hover:text-primary"
+                                      onClick={() =>
+                                        handleEditTask(t.id, t.name)
+                                      }
+                                    />
+                                    <Trash2
+                                      className="w-3 h-3 cursor-pointer text-muted-foreground hover:text-destructive"
+                                      onClick={() => confirmDeleteTask(t.id)}
+                                    />
                                   </div>
-                                ))
-                              ) : (
-                                <span className="italic text-xs opacity-70 pl-2">
-                                  No tasks available
-                                </span>
-                              )}
-                            </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
 
@@ -799,7 +702,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                             {isEditing ? (
                               <Input
                                 type="date"
-                                className="h-7 text-xs bg-background"
+                                className="h-7 text-xs"
                                 value={item.start_date || ""}
                                 onChange={(e) =>
                                   handleLocalChange(
@@ -817,7 +720,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                                 }
                               />
                             ) : (
-                              <span className="text-sm font-semibold text-foreground">
+                              <span className="text-sm">
                                 {item.start_date
                                   ? dayjs(item.start_date).format("DD/MM/YYYY")
                                   : "--"}
@@ -831,7 +734,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                             {isEditing ? (
                               <Input
                                 type="date"
-                                className="h-7 text-xs bg-background"
+                                className="h-7 text-xs"
                                 value={item.finish_date || ""}
                                 onChange={(e) =>
                                   handleLocalChange(
@@ -849,7 +752,7 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                                 }
                               />
                             ) : (
-                              <span className="text-sm font-semibold text-foreground">
+                              <span className="text-sm">
                                 {item.finish_date
                                   ? dayjs(item.finish_date).format("DD/MM/YYYY")
                                   : "--"}
@@ -863,8 +766,8 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                             <div className="flex flex-col items-center">
                               <Input
                                 type="number"
-                                className="h-8 w-20 text-center bg-background"
-                                value={item.subject?.estimated_time_days ?? 0}
+                                className="h-8 w-16 text-center"
+                                value={item.subject?.estimated_time_days}
                                 onChange={(e) =>
                                   handleLocalChange(
                                     item.id,
@@ -880,24 +783,24 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
                                   )
                                 }
                               />
-                              <span className="text-[10px] text-muted-foreground mt-1">
+                              <span className="text-[10px] text-muted-foreground">
                                 days
                               </span>
                             </div>
                           ) : (
-                            <span className="text-sm font-bold text-secondary-foreground bg-secondary px-3 py-1 rounded-full">
-                              {item.subject?.estimated_time_days ?? 0} days
+                            <span className="text-sm font-bold bg-secondary px-2 py-1 rounded-full">
+                              {item.subject?.estimated_time_days || 0} days
                             </span>
                           )}
                         </div>
 
-                        <div className="col-span-1 flex justify-end pt-2">
+                        <div className="col-span-1 pt-2 text-right">
                           {isEditing && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-500 h-8 w-8 hover:bg-red-100/10 hover:text-red-600"
-                              onClick={() => handleDelete(item.id)}
+                              className="text-destructive h-8 w-8"
+                              onClick={() => confirmDeleteSubject(item.id)}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -912,10 +815,9 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
             )}
           </Droppable>
         </DragDropContext>
-
-        {safeSubjects.length === 0 && (
+        {subjects.length === 0 && (
           <div className="p-8 text-center text-muted-foreground">
-            No subjects added to this course yet.
+            No subjects added.
           </div>
         )}
       </div>
@@ -923,17 +825,28 @@ const SubjectsTab = ({ courseId, isEditing }: SubjectsTabProps) => {
   );
 };
 
+// --- MAIN PAGE ---
 export default function AdminCourseDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const courseId = Number(params.id);
 
+  const [role, setRole] = useState<UserRole>("TRAINEE");
+  const [loadingRole, setLoadingRole] = useState(true);
   const [course, setCourse] = useState<AdminCourseDetail | null>(null);
   const [trainees, setTrainees] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [activeTab, setActiveTab] = useState<"subjects" | "people">("subjects");
+  const [activeTab, setActiveTab] = useState("subjects");
   const [isEditing, setIsEditing] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
+    isOpen: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
+
   const [editForm, setEditForm] = useState<CourseEditForm>({
     name: "",
     start_date: "",
@@ -942,164 +855,155 @@ export default function AdminCourseDetailPage() {
   });
 
   useEffect(() => {
-    if (searchParams.get("edit") === "true") {
-      setIsEditing(true);
-    }
-  }, [searchParams]);
+    const checkRole = async () => {
+      try {
+        const res = await axiosClient.get("/auth/me/");
+        const user = (res.data as any).data || res.data;
+        if (user && user.role) setRole(user.role);
+      } catch (error) {
+        toast.error("Authentication failed");
+      } finally {
+        setLoadingRole(false);
+      }
+    };
+    checkRole();
+  }, []);
+
+  const api = useMemo(() => getDynamicApi(role), [role]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const [courseRes, traineesRes] = await Promise.all([
-        adminApi.getCourseDetail(courseId),
-        adminApi.getTrainees(courseId),
+        api.getDetail(courseId),
+        api.getTrainees(courseId),
       ]);
 
-      const courseBody = courseRes.data as any;
-      let actualCourseData =
-        courseBody && courseBody.data && !courseBody.id
-          ? courseBody.data
-          : courseBody;
-
-      if (actualCourseData.supervisors) {
-        // Dữ liệu trả về đã đúng chuẩn format AdminCourseDetail,
-        // không cần xử lý thêm, logic supervisorList bên dưới sẽ tự lo liệu.
-      } else if (
-        actualCourseData.members &&
-        actualCourseData.members.trainers
-      ) {
-        // Trường hợp cấu trúc API cũ/khác trả về nested members
-        actualCourseData.supervisors =
-          actualCourseData.members.trainers.list.map((t: any) => ({
-            id: Math.random(),
-            supervisor: t,
-          }));
+      const courseData = (courseRes.data as any).data || courseRes.data;
+      if (!courseData.supervisors && courseData.members?.trainers) {
+        courseData.supervisors = courseData.members.trainers.list.map(
+          (t: any) => ({ id: Math.random(), supervisor: t })
+        );
       }
-      setCourse(actualCourseData);
+      setCourse(courseData);
 
-      const traineesBody = traineesRes.data as any;
-      let actualTraineesData: User[] = [];
-      if (Array.isArray(traineesBody)) {
-        actualTraineesData = traineesBody;
-      } else if (traineesBody?.data && Array.isArray(traineesBody.data)) {
-        actualTraineesData = traineesBody.data;
-      } else if (traineesBody?.results && Array.isArray(traineesBody.results)) {
-        actualTraineesData = traineesBody.results;
-      } else if (
-        actualCourseData.members &&
-        actualCourseData.members.trainees
-      ) {
-        actualTraineesData = actualCourseData.members.trainees.list;
-      }
-      setTrainees(actualTraineesData);
+      const traineesData =
+        (traineesRes.data as any).data ||
+        (traineesRes.data as any).results ||
+        traineesRes.data;
+      setTrainees(Array.isArray(traineesData) ? traineesData : []);
 
-      if (actualCourseData) {
-        setEditForm({
-          name: actualCourseData.name || "",
-          start_date: actualCourseData.start_date || "",
-          finish_date: actualCourseData.finish_date || "",
-          link_to_course: actualCourseData.link_to_course || "",
-        });
-      }
+      setEditForm({
+        name: courseData.name || "",
+        start_date: courseData.start_date || "",
+        finish_date: courseData.finish_date || "",
+        link_to_course: courseData.link_to_course || "",
+      });
     } catch (error) {
-      console.error("Error fetching data:", error);
+      toast.error("Failed to load data or access denied");
+      if (role === "SUPERVISOR") router.push("/admin/courses");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (courseId) fetchData();
-  }, [courseId]);
+    if (!loadingRole && courseId) fetchData();
+  }, [courseId, loadingRole, api]);
 
-  const handleSaveCourseInfo = async () => {
+  useEffect(() => {
+    if (searchParams.get("edit") === "true") setIsEditing(true);
+  }, [searchParams]);
+
+  const handleSave = async () => {
     try {
-      await adminApi.updateCourse(courseId, editForm);
+      await api.updateCourse(courseId, editForm);
+      toast.success("Course updated");
       setIsEditing(false);
       fetchData();
-      alert("Course updated successfully");
-    } catch (error) {
-      alert("Update failed");
+    } catch (e) {
+      toast.error("Update failed");
     }
   };
 
-  const handleAddTrainee = async (userId: number) => {
+  const handleAddTrainee = async (uid: number) => {
     try {
-      await adminApi.addTrainees(courseId, [userId]);
-      alert("Trainee added");
-      const res = await adminApi.getTrainees(courseId);
-      const data = res.data as any;
-      let actualTraineesData: User[] = [];
-      if (Array.isArray(data)) {
-        actualTraineesData = data;
-      } else if (data && Array.isArray(data.data)) {
-        actualTraineesData = data.data;
-      } else if (data && Array.isArray(data.results)) {
-        actualTraineesData = data.results;
-      }
-      setTrainees(actualTraineesData);
-    } catch (error) {
-      alert("Failed to add trainee");
-    }
-  };
-
-  const handleRemoveTrainee = async (userId: number) => {
-    if (!window.confirm("Remove this trainee?")) return;
-    try {
-      await adminApi.removeTrainee(courseId, userId);
-      setTrainees((prev) => prev.filter((t) => t.id !== userId));
-    } catch (error) {
-      alert("Failed to remove trainee");
-    }
-  };
-
-  const handleAddSupervisor = async (userId: number) => {
-    try {
-      await adminApi.addSupervisors(courseId, [userId]);
-      alert("Supervisor added");
+      await api.addTrainees(courseId, [uid]);
+      toast.success("Trainee added");
       fetchData();
-    } catch (error) {
-      alert("Failed to add supervisor");
+    } catch (e) {
+      toast.error("Failed to add trainee");
     }
   };
 
-  const handleRemoveSupervisor = async (userId: number) => {
-    if (!window.confirm("Remove this supervisor?")) return;
+  const handleRemoveTrainee = async (uid: number) => {
     try {
-      await adminApi.removeSupervisor(courseId, userId);
-      fetchData();
-    } catch (error) {
-      alert("Failed to remove supervisor");
+      await api.removeTrainee(courseId, uid);
+      toast.success("Trainee removed");
+      setTrainees((p) => p.filter((t) => t.id !== uid));
+    } catch (e) {
+      toast.error("Failed to remove trainee");
     }
   };
 
-  if (loading) {
+  const handleAddSupervisor = async (uid: number) => {
+    try {
+      await api.addSupervisors(courseId, [uid]);
+      toast.success("Supervisor added");
+      fetchData();
+    } catch (e) {
+      toast.error("Failed to add supervisor");
+    }
+  };
+
+  const handleRemoveSupervisor = async (uid: number) => {
+    try {
+      await api.removeSupervisor(courseId, uid);
+      toast.success("Supervisor removed");
+      fetchData();
+    } catch (e) {
+      toast.error("Failed to remove supervisor");
+    }
+  };
+
+  const confirmDeletePerson = (id: number, type: "Trainee" | "Supervisor") => {
+    setConfirmModal({
+      isOpen: true,
+      title: `Remove ${type}?`,
+      description: `Are you sure you want to remove this ${type.toLowerCase()} from the course?`,
+      onConfirm: () =>
+        type === "Trainee"
+          ? handleRemoveTrainee(id)
+          : handleRemoveSupervisor(id),
+    });
+  };
+
+  if (loading || loadingRole)
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <Loader2 className="animate-spin mr-2 text-primary" /> Loading...
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
       </div>
     );
-  }
-
-  if (!course) return <div>Course not found</div>;
+  if (!course) return <div className="p-10 text-center">Course not found.</div>;
 
   const supervisorList =
-    course.supervisors?.map((s) => {
-      if ((s as any).email) return s as any as User;
-      return s.supervisor;
-    }) || [];
+    course.supervisors?.map((s: any) => s.supervisor || s) || [];
+  const canManageSupervisors = role === "ADMIN";
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6 pb-24">
+      {/* [FIX] TOASTER CONFIG - Hiện thông báo ở trên cùng */}
+      <Toaster position="top-center" richColors />
+
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-foreground">Course Detail</h1>
+        <h1 className="text-3xl font-bold">Course Detail</h1>
         <Button
           variant={isEditing ? "destructive" : "default"}
-          onClick={() => (isEditing ? setIsEditing(false) : setIsEditing(true))}
+          onClick={() => setIsEditing(!isEditing)}
         >
           {isEditing ? (
             <>
-              <X className="mr-2 h-4 w-4" /> Cancel Edit
+              <X className="mr-2 h-4 w-4" /> Cancel
             </>
           ) : (
             <>
@@ -1112,141 +1016,116 @@ export default function AdminCourseDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-4">
-            {/* AVATAR UI */}
             <Avatar className="h-16 w-16 border border-border shadow-sm rounded-lg">
               <AvatarImage
-                src={course.image || ""}
-                alt={course.name}
+                src={getImageUrl(course.image)}
                 className="object-cover"
               />
-              <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold text-lg">
+              <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-bold">
                 {getInitials(course.name)}
               </AvatarFallback>
             </Avatar>
-
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-3">
-                <span className="text-muted-foreground text-sm font-normal">
-                  Course Name:
-                </span>
+                <span className="text-sm text-muted-foreground">Name:</span>
                 {isEditing ? (
                   <Input
                     value={editForm.name}
                     onChange={(e) =>
                       setEditForm({ ...editForm, name: e.target.value })
                     }
-                    className="max-w-md font-bold bg-background h-8"
+                    className="h-8 font-bold max-w-md"
                   />
                 ) : (
                   <span className="text-xl font-bold">{course.name}</span>
                 )}
               </div>
-
-              {/* [UPDATED] STATUS BADGE */}
               {!isEditing && <StatusBadge status={course.status} />}
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              {isEditing ? (
-                <Input
-                  type="date"
-                  value={editForm.start_date}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, start_date: e.target.value })
-                  }
-                  className="bg-background"
-                />
-              ) : (
-                <div className="font-medium text-foreground">
-                  {dayjs(course.start_date).format("DD/MM/YYYY")}
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Finish Date</Label>
-              {isEditing ? (
-                <Input
-                  type="date"
-                  value={editForm.finish_date}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, finish_date: e.target.value })
-                  }
-                  className="bg-background"
-                />
-              ) : (
-                <div className="font-medium text-foreground">
-                  {dayjs(course.finish_date).format("DD/MM/YYYY")}
-                </div>
-              )}
-            </div>
-            <div className="col-span-2 space-y-2">
-              <Label>Course Link</Label>
-              {isEditing ? (
-                <Input
-                  value={editForm.link_to_course}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, link_to_course: e.target.value })
-                  }
-                  className="bg-background"
-                />
-              ) : (
-                <a
-                  href={course.link_to_course || "#"}
-                  target="_blank"
-                  className="block text-blue-600 hover:underline truncate"
-                >
-                  {course.link_to_course || "N/A"}
-                </a>
-              )}
-            </div>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label>Start Date</Label>
+            {isEditing ? (
+              <Input
+                type="date"
+                value={editForm.start_date}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, start_date: e.target.value })
+                }
+              />
+            ) : (
+              <div className="font-medium">
+                {dayjs(course.start_date).format("DD/MM/YYYY")}
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>Finish Date</Label>
+            {isEditing ? (
+              <Input
+                type="date"
+                value={editForm.finish_date}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, finish_date: e.target.value })
+                }
+              />
+            ) : (
+              <div className="font-medium">
+                {dayjs(course.finish_date).format("DD/MM/YYYY")}
+              </div>
+            )}
+          </div>
+          <div className="col-span-2 space-y-2">
+            <Label>Link</Label>
+            {isEditing ? (
+              <Input
+                value={editForm.link_to_course}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, link_to_course: e.target.value })
+                }
+              />
+            ) : (
+              <a
+                href={course.link_to_course}
+                target="_blank"
+                className="text-blue-600 hover:underline"
+              >
+                {course.link_to_course || "N/A"}
+              </a>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <div className="w-full">
-        <div className="grid w-full grid-cols-2 bg-muted p-1 rounded-lg mb-4">
-          <button
-            onClick={() => setActiveTab("subjects")}
-            className={`py-2 text-sm font-medium rounded-md transition-all ${
-              activeTab === "subjects"
-                ? "bg-background shadow text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <BookOpen className="h-4 w-4" /> Subjects
-            </div>
-          </button>
-          <button
-            onClick={() => setActiveTab("people")}
-            className={`py-2 text-sm font-medium rounded-md transition-all ${
-              activeTab === "people"
-                ? "bg-background shadow text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <Users className="h-4 w-4" /> Supervisors & Trainees
-            </div>
-          </button>
-        </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="subjects">
+            <BookOpen className="h-4 w-4 mr-2" /> Subjects
+          </TabsTrigger>
+          <TabsTrigger value="people">
+            <Users className="h-4 w-4 mr-2" /> People
+          </TabsTrigger>
+        </TabsList>
 
-        {activeTab === "subjects" && (
+        <TabsContent value="subjects" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Subject Management</CardTitle>
+              <CardTitle>Curriculum</CardTitle>
             </CardHeader>
             <CardContent>
-              <SubjectsTab courseId={courseId} isEditing={isEditing} />
+              <SubjectsTab
+                courseId={courseId}
+                isEditing={isEditing}
+                api={api}
+                setConfirmModal={setConfirmModal}
+              />
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {activeTab === "people" && (
+        <TabsContent value="people" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardContent className="pt-6">
@@ -1255,7 +1134,10 @@ export default function AdminCourseDetailPage() {
                   type="Supervisor"
                   data={supervisorList}
                   onAdd={handleAddSupervisor}
-                  onRemove={handleRemoveSupervisor}
+                  canEdit={canManageSupervisors}
+                  onDeleteClick={(id: number) =>
+                    confirmDeletePerson(id, "Supervisor")
+                  }
                 />
               </CardContent>
             </Card>
@@ -1266,16 +1148,19 @@ export default function AdminCourseDetailPage() {
                   type="Trainee"
                   data={trainees}
                   onAdd={handleAddTrainee}
-                  onRemove={handleRemoveTrainee}
+                  canEdit={true}
+                  onDeleteClick={(id: number) =>
+                    confirmDeletePerson(id, "Trainee")
+                  }
                 />
               </CardContent>
             </Card>
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {isEditing && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 flex justify-end gap-4 shadow-lg z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 flex justify-end gap-4 shadow-lg z-20">
           <div className="container max-w-5xl flex justify-end">
             <Button
               variant="outline"
@@ -1284,12 +1169,47 @@ export default function AdminCourseDetailPage() {
             >
               Cancel
             </Button>
-            <Button onClick={handleSaveCourseInfo}>
+            <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" /> Save Changes
             </Button>
           </div>
         </div>
       )}
+
+      <Dialog
+        open={confirmModal.isOpen}
+        onOpenChange={(open) =>
+          !open && setConfirmModal({ ...confirmModal, isOpen: false })
+        }
+      >
+        <DialogContent className="z-[100]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" /> {confirmModal.title}
+            </DialogTitle>
+            <DialogDescription>{confirmModal.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() =>
+                setConfirmModal({ ...confirmModal, isOpen: false })
+              }
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                confirmModal.onConfirm();
+                setConfirmModal({ ...confirmModal, isOpen: false });
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
