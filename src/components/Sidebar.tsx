@@ -116,20 +116,25 @@ export default function Sidebar({ className }: SidebarProps) {
       }`}
     >
       <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className={`flex gap-3 items-center p-3 rounded-lg transition ${
-                pathname === item.href
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-muted"
-              }`}
-            >
-              {item.icon} {item.label}
-            </Link>
-          </li>
-        ))}
+        {items.map((item) => {
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className={`flex gap-3 items-center p-3 rounded-lg transition ${
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "hover:bg-muted"
+                }`}
+              >
+                {item.icon} {item.label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </aside>
   );

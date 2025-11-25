@@ -18,6 +18,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (data: AuthLoginResponse) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -73,14 +74,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     router.push("/login");
   };
 
+  const refreshUser = async () => {
+    try {
+      const token = tokenUtils.getAccessToken();
+      if (!token) return;
+
+      const res = await authApi.getMe();
+      if (res.data && res.data.data) {
+        setUser(res.data.data);
+        localStorage.setItem("user", JSON.stringify(res.data.data));
+      }
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated, 
-        isLoading, 
+        isAuthenticated,
+        isLoading,
         login,
         logout,
+        refreshUser,
       }}
     >
       {children}

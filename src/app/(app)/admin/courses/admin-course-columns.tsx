@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { type DashboardCourse } from "@/types/course";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +10,8 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
-  Eye,
   ExternalLink,
+  AlertCircle, // Import thêm icon này
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +23,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog"; // Import các component Dialog
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/adminApi";
@@ -72,15 +81,14 @@ const StatusBadge = ({ status }: { status: number }) => {
 
 const ActionCell = ({ course }: { course: DashboardCourse }) => {
   const router = useRouter();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete: "${course.name}"?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
     const toastId = toast.loading("Deleting course...");
     try {
       await adminApi.deleteCourse(course.id);
       toast.success("Course deleted successfully", { id: toastId });
+      setIsDeleteDialogOpen(false);
       window.location.reload();
     } catch (error) {
       console.error("Delete error:", error);
@@ -93,48 +101,84 @@ const ActionCell = ({ course }: { course: DashboardCourse }) => {
   };
 
   return (
-    <div className="flex justify-end items-center gap-1">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-          >
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Admin Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem asChild>
-            <Link
-              href={`/admin/courses/${course.id}`}
-              className="cursor-pointer w-full flex items-center text-primary font-medium focus:text-primary focus:bg-primary/10"
+    <>
+      <div className="flex justify-end items-center gap-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
             >
-              <ExternalLink className="mr-2 h-4 w-4" /> View Details
-            </Link>
-          </DropdownMenuItem>
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Admin Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
 
-          <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/admin/courses/${course.id}`}
+                className="cursor-pointer w-full flex items-center text-primary font-medium focus:text-primary focus:bg-primary/10"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" /> View Details
+              </Link>
+            </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-            <Edit className="mr-2 h-4 w-4" /> Edit Course
-          </DropdownMenuItem>
+            <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              handleDelete();
-            }}
-            className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 cursor-pointer"
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Delete Course
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+            <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+              <Edit className="mr-2 h-4 w-4" /> Edit Course
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault(); // Ngăn dropdown đóng ngay lập tức để dialog hoạt động mượt hơn
+                setIsDeleteDialogOpen(true);
+              }}
+              className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 cursor-pointer"
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete Course
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="z-50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" /> Confirm Deletion
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the course{" "}
+              <span className="font-semibold text-foreground">
+                &quot;{course.name}&quot;
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              className="cursor-pointer"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
