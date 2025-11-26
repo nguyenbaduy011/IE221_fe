@@ -65,11 +65,11 @@ export default function SubjectDetailClient({ initialId }: Props) {
   }, [fetchDetail]);
 
 
-  if (loading) {
+if (loading) {
     return (
       <div className="flex h-[50vh] flex-col items-center justify-center gap-2">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <span className="text-gray-500 font-medium">Đang tải dữ liệu...</span>
+        <span className="text-gray-500 font-medium">Loading data...</span>
       </div>
     );
   }
@@ -77,10 +77,10 @@ export default function SubjectDetailClient({ initialId }: Props) {
   if (!detail) {
     return (
         <div className="flex flex-col items-center justify-center mt-20 gap-4">
-            <h2 className="text-2xl font-bold text-gray-700">Không tìm thấy môn học</h2>
-            <p className="text-gray-500">Môn học ID #{initialId} không tồn tại hoặc bạn chưa đăng ký.</p>
+            <h2 className="text-2xl font-bold text-gray-700">Subject not found</h2>
+            <p className="text-gray-500">Subject ID #{initialId} does not exist or you are not enrolled.</p>
             <Button variant="outline" onClick={() => router.back()}>
-                <ArrowLeft className="w-4 h-4 mr-2"/> Quay lại
+                <ArrowLeft className="w-4 h-4 mr-2"/> Go back
             </Button>
         </div>
     );
