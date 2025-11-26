@@ -27,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import Image from "next/image";
+import { Category } from "@/types/course";
 
 export default function CreateCoursePage() {
   const router = useRouter();
@@ -35,6 +36,9 @@ export default function CreateCoursePage() {
   const [availableSupervisors, setAvailableSupervisors] = useState<User[]>([]);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [availableCategories, setAvailableCategories] = useState<Category[]>(
+    []
+  );
 
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +52,7 @@ export default function CreateCoursePage() {
       finish_date: "",
       subject_ids: [],
       supervisor_ids: [],
+      categories: [],
     },
   });
 
@@ -55,9 +60,10 @@ export default function CreateCoursePage() {
     const fetchResources = async () => {
       try {
         setIsLoadingData(true);
-        const [subjectsRes, usersRes] = await Promise.all([
+        const [subjectsRes, usersRes, categoriesRes] = await Promise.all([
           adminApi.getAllSubjects(),
           userApi.getAll(),
+          adminApi.getAllCategories(),
         ]);
         const subjectsData =
           (subjectsRes.data as any).data || subjectsRes.data || [];
@@ -68,6 +74,12 @@ export default function CreateCoursePage() {
           (u: User) => u.role === UserRole.SUPERVISOR
         );
         setAvailableSupervisors(supervisors);
+
+        const categoriesData =
+          (categoriesRes.data as any).data || categoriesRes.data || [];
+        setAvailableCategories(
+          Array.isArray(categoriesData) ? categoriesData : []
+        );
       } catch (error) {
         console.error("Failed to load resources:", error);
       } finally {
@@ -101,6 +113,7 @@ export default function CreateCoursePage() {
         image: selectedImage,
         subjects: values.subject_ids,
         supervisors: values.supervisor_ids,
+        categories: values.categories,
         status: 0,
       };
 
@@ -199,7 +212,8 @@ export default function CreateCoursePage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Start date <span className="text-destructive">*</span>
+                            Start date{" "}
+                            <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -214,7 +228,8 @@ export default function CreateCoursePage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Finish date <span className="text-destructive">*</span>
+                            Finish date{" "}
+                            <span className="text-destructive">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
@@ -226,6 +241,57 @@ export default function CreateCoursePage() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Categories</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[150px] w-full rounded-md border p-4">
+                    <div className="space-y-2">
+                      {availableCategories.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          No categories available.
+                        </p>
+                      )}
+                      {availableCategories.map((cat) => (
+                        <FormField
+                          key={cat.id}
+                          control={form.control}
+                          name="categories"
+                          render={({ field }) => {
+                            return (
+                              <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-1">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(cat.id)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([
+                                            ...(field.value || []),
+                                            cat.id,
+                                          ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== cat.id
+                                            )
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer flex-1">
+                                  {cat.name}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Subject ({availableSubjects.length})</CardTitle>

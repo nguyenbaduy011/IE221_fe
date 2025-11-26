@@ -53,6 +53,7 @@ export interface Course {
 
   course_supervisors: CourseSupervisor[];
   course_subjects: CourseSubject[];
+  categories: Category[];
 }
 
 export enum CourseStatus {
@@ -72,6 +73,7 @@ export interface DashboardCourse {
   created_at: string;
   member_count: number;
   supervisor_count: number;
+  categories?: Category[];
 }
 
 export interface ChartData {
@@ -110,6 +112,7 @@ export interface CourseEditForm {
   start_date: string;
   finish_date: string;
   link_to_course: string;
+  category_ids: number[];
 }
 
 export interface ConfirmModalState {
