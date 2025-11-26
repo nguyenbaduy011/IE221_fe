@@ -10,7 +10,22 @@ type Props = {
   courseStatus: number;
 };
 
+const statusMap: { [key: number]: string } = {
+  0: "Not started",
+  1: "Inprogress",
+  2: "Finished",
+};
+
+const statusVariantMap: { [key: number]: "default" | "secondary" | "destructive" | "outline" } = {
+  0: "secondary",
+  1: "default",  
+  2: "outline",  
+};
+
 export default function StudentInfo({ studentName, courseName, courseStart, courseEnd, courseStatus }: Props) {
+  const statusText = statusMap[courseStatus] || "Unknown status";
+  const statusVariant = statusVariantMap[courseStatus];
+
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm flex flex-col md:flex-row items-center gap-6">
       <Avatar className="w-20 h-20">
@@ -30,10 +45,11 @@ export default function StudentInfo({ studentName, courseName, courseStart, cour
         <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           <span>Course detail:</span>
           <span className="text-blue-600 font-bold">{courseName}</span>
-          <Badge variant={courseStatus === 2 ? "default" : "secondary"}>
-             {/* Map status number to text logic here if needed */}
-             Status: {courseStatus}
+
+          <Badge variant={statusVariant}>
+            {statusText}
           </Badge>
+
         </div>
       </div>
     </div>
