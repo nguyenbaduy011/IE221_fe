@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosClient from "@/lib/axiosClient";
-import { DashboardCourse, DashboardStats } from "@/types/course";
+import { Category, DashboardCourse, DashboardStats } from "@/types/course";
 import { User } from "@/types/user";
 
 export interface Task {
@@ -24,6 +25,7 @@ export interface CreateCoursePayload {
 
   subjects?: number[];
   supervisors?: number[];
+  categories?: number[];
 }
 
 export interface AdminCourseSubject {
@@ -158,6 +160,12 @@ export const adminApi = {
       });
     }
 
+    if (payload.categories && payload.categories.length > 0) {
+      payload.categories.forEach((id) => {
+        formData.append("categories", id.toString()); 
+      });
+    }
+
     return axiosClient.post<DashboardCourse>(
       "/api/admin/courses/create/",
       formData,
@@ -167,6 +175,10 @@ export const adminApi = {
         },
       }
     );
+  },
+
+  getAllCategories() {
+    return axiosClient.get<Category[]>("/api/admin/categories/"); // Giả sử bạn đã có API này
   },
 
   deleteCourse(id: number) {

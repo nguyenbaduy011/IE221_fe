@@ -11,7 +11,6 @@ import {
   Save,
   CheckSquare,
   MoreHorizontal,
-  Trash2,
   Loader2,
   AlertCircle,
   Pencil,
@@ -49,7 +48,6 @@ import {
   SubjectDetail,
   TaskStatus,
   Trainee,
-  UserTask,
 } from "@/types/subjectDetails";
 import { subjectApi } from "@/lib/subjectApi";
 

@@ -21,7 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Trash2, Plus, Loader2 } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Loader2,
+  CheckSquare,
+  Filter,
+} from "lucide-react";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/DeleteConfirmDialog";
 
@@ -83,21 +90,33 @@ export default function TaskListPage() {
 
   if (loading)
     return (
-      <div className="flex justify-center p-10">
-        <Loader2 className="animate-spin text-primary" />
+      <div className="flex flex-col items-center justify-center py-20 animate-pulse space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-muted-foreground font-medium">Loading tasks...</p>
       </div>
     );
 
   return (
-    <div className="h-full flex flex-col space-y-4">
-      {/* Header */}
-      <div className="flex-none flex flex-col sm:flex-row justify-between items-end bg-card p-4 rounded-lg shadow-sm border border-border gap-4">
-        <div className="w-full sm:w-[300px]">
-          <label className="text-sm font-medium mb-2 block text-foreground">
-            Filter by Subject
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col space-y-1">
+        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <CheckSquare className="w-5 h-5 text-primary" />
+          Task Management ({filteredTasks.length})
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Define and manage individual tasks assigned to specific subjects.
+        </p>
+      </div>
+
+      {/* Toolbar: Filter & Add */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
+        <div className="w-full sm:w-[300px] space-y-2">
+          <label className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Filter className="w-4 h-4" /> Filter by Subject
           </label>
           <Select value={filterSubjectId} onValueChange={setFilterSubjectId}>
-            <SelectTrigger className="bg-background border-input">
+            <SelectTrigger className="bg-background">
               <SelectValue placeholder="All Subjects" />
             </SelectTrigger>
             <SelectContent>
@@ -110,26 +129,28 @@ export default function TaskListPage() {
             </SelectContent>
           </Select>
         </div>
-        <Link href="/admin/master-data/tasks/new">
-          <Button className="cursor-pointer w-full sm:w-auto">
+
+        {/* Updated Link to Supervisor route */}
+        <Link href="/supervisor/master-data/tasks/new">
+          <Button className="w-full sm:w-auto shadow-sm">
             <Plus className="w-4 h-4 mr-2" /> Add Task
           </Button>
         </Link>
       </div>
 
       {/* Table Container */}
-      <div className="flex-1 overflow-hidden rounded-md border border-border bg-card shadow-sm relative">
-        <div className="absolute inset-0 overflow-auto">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="p-0">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-muted/50 border-b border-border">
+            <TableHeader className="bg-muted/20">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="font-bold text-muted-foreground">
+                <TableHead className="font-bold text-foreground pl-6">
                   Task Name
                 </TableHead>
-                <TableHead className="font-bold text-muted-foreground">
+                <TableHead className="font-bold text-foreground">
                   Subject
                 </TableHead>
-                <TableHead className="font-bold text-muted-foreground text-right pr-6">
+                <TableHead className="font-bold text-foreground text-right pr-6">
                   Actions
                 </TableHead>
               </TableRow>
@@ -139,29 +160,36 @@ export default function TaskListPage() {
                 <TableRow>
                   <TableCell
                     colSpan={3}
-                    className="text-center h-24 text-muted-foreground"
+                    className="text-center h-32 text-muted-foreground"
                   >
-                    No tasks available.
+                    No tasks found matching the current filter.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredTasks.map((task) => (
                   <TableRow
                     key={task.id}
-                    className="hover:bg-muted/50 transition-colors border-b border-border"
+                    className="hover:bg-muted/50 transition-colors border-b border-border last:border-0"
                   >
-                    <TableCell className="font-medium p-4 align-middle text-foreground">
+                    <TableCell className="font-medium p-4 pl-6 align-middle text-foreground">
                       {task.name}
                     </TableCell>
                     <TableCell className="text-muted-foreground p-4 align-middle">
-                      {task.subject_name || "---"}
+                      {task.subject_name ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-secondary-foreground text-xs font-medium">
+                          {task.subject_name}
+                        </span>
+                      ) : (
+                        "---"
+                      )}
                     </TableCell>
-                    <TableCell className="text-right p-4 align-middle space-x-2 pr-4">
-                      <Link href={`/admin/master-data/tasks/${task.id}`}>
+                    <TableCell className="text-right p-4 pr-6 align-middle space-x-2">
+                      {/* Updated Link to Supervisor route */}
+                      <Link href={`/supervisor/master-data/tasks/${task.id}`}>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400"
+                          className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
@@ -169,7 +197,7 @@ export default function TaskListPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 text-destructive"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         onClick={() => confirmDelete(task.id)}
                       >
                         <Trash2 className="w-4 h-4" />

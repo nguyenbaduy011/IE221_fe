@@ -1,41 +1,45 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Layers } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, BookOpen } from "lucide-react"; // Bỏ icon Plus
 import { DashboardCourse } from "@/types/course";
-import { adminApi } from "@/lib/adminApi";
-import Link from "next/link";
-import { CourseDataTable } from "./course-data-table";
-import { getAdminColumns } from "./admin-course-columns";
+import { supervisorApi } from "@/lib/supervisorApi"; // Đảm bảo đã có file này
+import { CourseDataTable } from "./course-data-table"; // Import Table từ Admin (tái sử dụng)
+import { getSupervisorColumns } from "./supervisor-course-columns"; // Import columns vừa tạo ở trên
 
-export default function AdminCourseManagementPage() {
+export default function SupervisorCourseManagementPage() {
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCourses = async () => {
+  const fetchMyCourses = async () => {
     try {
       setLoading(true);
-      const response = await adminApi.getAllCourses();
-      const payload = (response as any).data || response;
+      // 1. Gọi API lấy khóa học CỦA TÔI
+      const response = await supervisorApi.getMyCourses();
 
-      if (payload && Array.isArray(payload.data)) {
-        setCourses(payload.data);
-      } else if (Array.isArray(payload)) {
-        setCourses(payload);
-      } else {
-        setCourses([]);
+      // 2. Xử lý dữ liệu trả về an toàn
+      const payload = (response as any).data || response;
+      let data: DashboardCourse[] = [];
+
+      if (Array.isArray(payload)) {
+        data = payload;
+      } else if (payload && Array.isArray(payload.data)) {
+        data = payload.data;
+      } else if (payload && Array.isArray(payload.results)) {
+        data = payload.results;
       }
+
+      setCourses(data);
     } catch (error) {
+      console.error("Failed to load supervisor courses", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCourses();
+    fetchMyCourses();
   }, []);
 
   if (loading) {
@@ -44,7 +48,7 @@ export default function AdminCourseManagementPage() {
         <div className="flex flex-col items-center gap-3 animate-pulse">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
           <p className="text-muted-foreground font-medium">
-            Loading all courses...
+            Loading your assigned courses...
           </p>
         </div>
       </div>
@@ -56,30 +60,26 @@ export default function AdminCourseManagementPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Layers className="w-8 h-8 text-primary" />
-            Course Management
+            <BookOpen className="w-8 h-8 text-primary" />
+            My Courses
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            System-wide overview and management of all training courses.
+            Manage the courses you are assigned to supervise.
           </p>
         </div>
 
-        <Button asChild className="shrink-0 shadow-sm">
-          <Link href="/admin/courses/create">
-            <Plus className="w-5 h-5 mr-2" />
-            Create New Course
-          </Link>
-        </Button>
+        {/* ĐÃ ẨN NÚT TẠO KHÓA HỌC Ở ĐÂY */}
       </div>
 
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border bg-muted/20">
           <h2 className="text-lg font-semibold text-foreground">
-            All Courses Directory ({courses.length})
+            Assigned Courses ({courses.length})
           </h2>
         </div>
         <div className="p-6">
-          <CourseDataTable columns={getAdminColumns} data={courses} />
+          {/* Truyền columns dành riêng cho Supervisor */}
+          <CourseDataTable columns={getSupervisorColumns} data={courses} />
         </div>
       </div>
     </div>

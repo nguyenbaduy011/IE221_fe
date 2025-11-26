@@ -52,7 +52,7 @@ export default function LoginPage() {
           router.push("/trainee/dashboard");
         }
       } else {
-        throw new Error("Dữ liệu trả về không hợp lệ");
+        throw new Error("Invalid response data");
       }
     } catch (err: any) {
       console.error("Login error:", err);
@@ -64,9 +64,7 @@ export default function LoginPage() {
           data.errors?.code === "account_not_active";
 
         if (isNotActive) {
-          toast.warning(
-            "Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email."
-          );
+          toast.warning("Account not activated. Please check your email.");
 
           sessionStorage.setItem("pending_email", formData.email);
           router.push("/verify-email");
@@ -74,12 +72,14 @@ export default function LoginPage() {
         }
 
         if (err.response.status === 401) {
-          toast.error("Email hoặc mật khẩu không chính xác.");
+          toast.error("Incorrect email or password.");
         } else {
-          toast.error(data.detail || "Đã xảy ra lỗi. Vui lòng thử lại sau.");
+          toast.error(
+            data.detail || "An error occurred. Please try again later."
+          );
         }
       } else {
-        toast.error("Lỗi kết nối hoặc lỗi không xác định.");
+        toast.error("Connection error or unknown error.");
       }
     }
   };
@@ -93,7 +93,6 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Email Field */}
           <div>
             <label className="block text-sm font-semibold mb-2 text-foreground">
               Email
@@ -110,7 +109,6 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Password Field */}
           <div>
             <label className="block text-sm font-semibold mb-2 text-foreground">
               Password
@@ -127,7 +125,6 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Remember Me */}
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -140,7 +137,6 @@ export default function LoginPage() {
             </label>
           </div>
 
-          {/* Submit Button */}
           <Button
             type="submit"
             className="w-full cursor-pointer"
@@ -149,11 +145,9 @@ export default function LoginPage() {
             {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
 
-          {/* Sign up Link */}
           <div className="text-center text-sm text-foreground/70">
             <span>Don&apos;t have an account? </span>
             <Link
-              type="button"
               className="text-primary font-semibold hover:underline"
               href="/register"
             >

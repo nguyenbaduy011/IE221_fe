@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "./user";
 
+export type UserRole = "ADMIN" | "SUPERVISOR" | "TRAINEE";
+
 export interface Category {
   id: number;
   name: string;
@@ -51,6 +53,7 @@ export interface Course {
 
   course_supervisors: CourseSupervisor[];
   course_subjects: CourseSubject[];
+  categories: Category[];
 }
 
 export enum CourseStatus {
@@ -70,6 +73,7 @@ export interface DashboardCourse {
   created_at: string;
   member_count: number;
   supervisor_count: number;
+  categories?: Category[];
 }
 
 export interface ChartData {
@@ -95,4 +99,38 @@ export interface DashboardStats {
   completion_rate: number;
   chart_data: ChartData[];
   recent_activities: ActivityData[];
+}
+
+export type EditableSubjectField =
+  | "estimated_time_days"
+  | "name"
+  | "start_date"
+  | "finish_date";
+
+export interface CourseEditForm {
+  name: string;
+  start_date: string;
+  finish_date: string;
+  link_to_course: string;
+  category_ids: number[];
+}
+
+export interface ConfirmModalState {
+  isOpen: boolean;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+}
+
+export interface AdminCourseSubject {
+  id: number;
+  position: number;
+  start_date?: string;
+  finish_date?: string;
+  subject: {
+    id: number;
+    name: string;
+    estimated_time_days: number;
+    tasks: { id: number; name: string }[];
+  };
 }
