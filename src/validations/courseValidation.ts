@@ -21,6 +21,7 @@ export const courseSchema = z
     finish_date: z.string().min(1, "Choose a Finish Date"),
     subject_ids: z.array(z.number()),
     supervisor_ids: z.array(z.number()).min(1, "Select at least 1 trainer"),
+    categories: z.array(z.number()).min(1, "Select at least 1 category")
   })
   .refine(
     (data) => {

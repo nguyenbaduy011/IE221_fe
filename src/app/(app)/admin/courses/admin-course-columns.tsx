@@ -217,6 +217,25 @@ export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
     },
   },
   {
+    accessorKey: "categories",
+    header: "Category",
+    cell: ({ row }) => {
+      const categories = row.original.categories || [];
+      return (
+        <div className="flex flex-wrap gap-1">
+          {categories.map((cat) => (
+            <Badge key={cat.id} variant="secondary" className="text-xs">
+              {cat.name}
+            </Badge>
+          ))}
+          {categories.length === 0 && (
+            <span className="text-muted-foreground text-xs">--</span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "start_date",
     header: "Duration",
     cell: ({ row }) => {

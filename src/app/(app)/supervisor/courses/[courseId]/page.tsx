@@ -4,7 +4,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Loader2,
   Save,
@@ -14,16 +14,13 @@ import {
   Users,
   AlertCircle,
   ArrowLeft,
-  Check,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { toast, Toaster } from "sonner";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import axiosClient from "@/lib/axiosClient";
 import { courseApi } from "@/lib/courseApi";
-import { adminApi, AdminCourseDetail } from "@/lib/adminApi";
+import { adminApi, AdminCourseDetail } from "@/lib/adminApi"; // Vẫn dùng type từ adminApi hoặc supervisorApi
 import { User } from "@/types/user";
 import {
   UserRole,
@@ -48,7 +45,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// Import các components con đã tách
+// Import các components
 import { PeopleList } from "@/components/PeopleList";
 import { SubjectsTab } from "@/components/SubjectsTab";
 import { BackButton } from "@/components/ui/back-button";
@@ -75,14 +72,7 @@ const getImageUrl = (path: string | null | undefined) => {
 const StatusBadge = ({ status }: { status: number }) => {
   switch (status) {
     case 0:
-      return (
-        <Badge
-          variant="outline"
-          className="bg-muted text-muted-foreground border-border"
-        >
-          Not Started
-        </Badge>
-      );
+      return <Badge variant="outline">Not Started</Badge>;
     case 1:
       return (
         <Badge
@@ -106,12 +96,12 @@ const StatusBadge = ({ status }: { status: number }) => {
   }
 };
 
-export default function AdminCourseDetailPage() {
+export default function SupervisorCourseDetailPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const courseId = Number(params.id);
 
+  // State
   const [role, setRole] = useState<UserRole>("TRAINEE");
   const [loadingRole, setLoadingRole] = useState(true);
   const [course, setCourse] = useState<AdminCourseDetail | null>(null);
@@ -138,15 +128,22 @@ export default function AdminCourseDetailPage() {
     category_ids: [],
   });
 
-  // Check Auth Role
+  // 1. Check Role & Auth
   useEffect(() => {
     const checkRole = async () => {
       try {
         const res = await axiosClient.get("/auth/me/");
         const user = (res.data as any).data || res.data;
-        if (user && user.role) setRole(user.role);
+        if (user && user.role) {
+          setRole(user.role);
+          // Nếu không phải Supervisor hoặc Admin thì đá ra
+          if (user.role !== "SUPERVISOR" && user.role !== "ADMIN") {
+            router.push("/");
+          }
+        }
       } catch (error) {
         toast.error("Authentication failed");
+        router.push("/login");
       } finally {
         setLoadingRole(false);
       }
@@ -154,16 +151,19 @@ export default function AdminCourseDetailPage() {
     checkRole();
   }, []);
 
+  // 2. Fetch Data
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [courseRes, traineesRes, categoriesRes] = await Promise.all([
+      // Supervisor chỉ fetch detail và trainees, không fetch categories
+      const [courseRes, traineesRes] = await Promise.all([
         courseApi.getDetail(courseId, role),
         courseApi.getTrainees(courseId, role),
-        adminApi.getAllCategories(),
       ]);
 
       const courseData = (courseRes.data as any).data || courseRes.data;
+
+      // Fallback data structure cũ
       if (!courseData.supervisors && courseData.members?.trainers) {
         courseData.supervisors = courseData.members.trainers.list.map(
           (t: any) => ({ id: Math.random(), supervisor: t })
@@ -177,33 +177,19 @@ export default function AdminCourseDetailPage() {
         traineesRes.data;
       setTrainees(Array.isArray(traineesData) ? traineesData : []);
 
-      let validCategories: Category[] = [];
-      const rawCat = categoriesRes.data as any;
-
-      if (Array.isArray(rawCat)) {
-        validCategories = rawCat;
-      } else if (rawCat?.data && Array.isArray(rawCat.data)) {
-        validCategories = rawCat.data;
-      } else if (rawCat?.results && Array.isArray(rawCat.results)) {
-        validCategories = rawCat.results;
-      }
-
-      console.log("Final Categories List:", validCategories);
-      setAvailableCategories(validCategories);
-
+      // Setup Edit Form (Dù không cho sửa nhưng vẫn cần state để không lỗi logic)
       setEditForm({
         name: courseData.name || "",
         start_date: courseData.start_date || "",
         finish_date: courseData.finish_date || "",
         link_to_course: courseData.link_to_course || "",
-        category_ids:
-          courseData.categories && Array.isArray(courseData.categories)
-            ? courseData.categories.map((c: any) => c.id)
-            : [],
+        category_ids: courseData.categories
+          ? courseData.categories.map((c: any) => c.id)
+          : [],
       });
     } catch (error) {
       toast.error("Failed to load data or access denied");
-      if (role === "SUPERVISOR") router.push("/admin/courses");
+      router.push("/supervisor/courses");
     } finally {
       setLoading(false);
     }
@@ -213,21 +199,13 @@ export default function AdminCourseDetailPage() {
     if (!loadingRole && courseId) fetchData();
   }, [courseId, loadingRole, role]);
 
-  useEffect(() => {
-    if (searchParams.get("edit") === "true") setIsEditing(true);
-  }, [searchParams]);
-
   const handleSave = async () => {
-    try {
-      await courseApi.updateCourse(courseId, editForm, role);
-      toast.success("Course updated");
-      setIsEditing(false);
-      fetchData();
-    } catch (e) {
-      toast.error("Update failed");
-    }
+    setIsEditing(false);
+
+    toast.info("Exited edit mode.");
   };
 
+  // Logic thêm/xóa Trainee/Supervisor
   const handleAddTrainee = async (uid: number) => {
     try {
       await courseApi.addTrainees(courseId, [uid], role);
@@ -263,8 +241,9 @@ export default function AdminCourseDetailPage() {
       await courseApi.removeSupervisor(courseId, uid, role);
       toast.success("Supervisor removed");
       fetchData();
-    } catch (e) {
-      toast.error("Failed to remove supervisor");
+    } catch (e: any) {
+      // Hiển thị lỗi từ backend (ví dụ: không thể xóa chính mình)
+      toast.error(e.response?.data?.detail || "Failed to remove supervisor");
     }
   };
 
@@ -280,12 +259,6 @@ export default function AdminCourseDetailPage() {
     });
   };
 
-  const handleBack = () => {
-    const path =
-      role === "SUPERVISOR" ? "/supervisor/courses" : "/admin/courses";
-    router.push(path);
-  };
-
   if (loading || loadingRole)
     return (
       <div className="h-screen flex items-center justify-center">
@@ -296,30 +269,20 @@ export default function AdminCourseDetailPage() {
 
   const supervisorList =
     course.supervisors?.map((s: any) => s.supervisor || s) || [];
+
+  // --- PHÂN QUYỀN QUAN TRỌNG ---
+  // Chỉ Admin mới được quản lý danh sách Supervisor
   const canManageSupervisors = role === "ADMIN";
 
-  const toggleCategory = (categoryId: number) => {
-    setEditForm((prev) => {
-      const currentIds = prev.category_ids;
-      if (currentIds.includes(categoryId)) {
-        return {
-          ...prev,
-          category_ids: currentIds.filter((id) => id !== categoryId),
-        };
-      } else {
-        return {
-          ...prev,
-          category_ids: [...currentIds, categoryId],
-        };
-      }
-    });
-  };
+  // Chỉ Admin mới được sửa thông tin chung (Tên, ngày, danh mục)
+  const canEditGeneralInfo = role === "ADMIN";
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6 pb-24">
       <Toaster position="top-center" richColors />
 
-      <BackButton />
+      {/* Nút Back trỏ về trang Supervisor */}
+      <BackButton href="/supervisor/courses" />
 
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Course Detail</h1>
@@ -330,11 +293,11 @@ export default function AdminCourseDetailPage() {
         >
           {isEditing ? (
             <>
-              <X className="mr-2 h-4 w-4" /> Cancel
+              <X className="mr-2 h-4 w-4" /> Exit Edit Mode
             </>
           ) : (
             <>
-              <Pencil className="mr-2 h-4 w-4" /> Edit Course
+              <Pencil className="mr-2 h-4 w-4" /> Manage Course
             </>
           )}
         </Button>
@@ -355,7 +318,8 @@ export default function AdminCourseDetailPage() {
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">Name:</span>
-                {isEditing ? (
+                {/* Chỉ cho sửa tên nếu là Admin, Supervisor chỉ xem */}
+                {isEditing && canEditGeneralInfo ? (
                   <Input
                     value={editForm.name}
                     onChange={(e) =>
@@ -374,7 +338,7 @@ export default function AdminCourseDetailPage() {
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label>Start Date</Label>
-            {isEditing ? (
+            {isEditing && canEditGeneralInfo ? (
               <Input
                 type="date"
                 value={editForm.start_date}
@@ -390,7 +354,7 @@ export default function AdminCourseDetailPage() {
           </div>
           <div className="space-y-2">
             <Label>Finish Date</Label>
-            {isEditing ? (
+            {isEditing && canEditGeneralInfo ? (
               <Input
                 type="date"
                 value={editForm.finish_date}
@@ -405,62 +369,27 @@ export default function AdminCourseDetailPage() {
             )}
           </div>
 
+          {/* CATEGORIES: Supervisor luôn chỉ xem (Read-only) */}
           <div className="col-span-2 space-y-2">
             <Label>Categories</Label>
-            {isEditing ? (
-              <div className="border rounded-md">
-                <ScrollArea className="h-[200px] w-full rounded-md p-2">
-                  <div className="space-y-1">
-                    {availableCategories.length === 0 && (
-                      <p className="text-sm text-muted-foreground p-2 text-center">
-                        No categories available.
-                      </p>
-                    )}
-
-                    {availableCategories.map((c) => {
-                      const isSelected = editForm.category_ids.includes(c.id);
-                      return (
-                        <div
-                          key={c.id}
-                          onClick={() => toggleCategory(c.id)}
-                          className={cn(
-                            "flex items-center justify-between px-3 py-2 text-sm rounded-md cursor-pointer transition-colors",
-                            isSelected
-                              ? "bg-primary/10 text-primary font-medium border border-primary/20"
-                              : "hover:bg-muted text-foreground"
-                          )}
-                        >
-                          <span>{c.name}</span>
-                          {isSelected && <Check className="w-4 h-4" />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-                <div className="bg-muted/30 p-2 text-[11px] text-muted-foreground text-center border-t">
-                  Click to select or deselect items.
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {course.categories && course.categories.length > 0 ? (
-                  course.categories.map((c: any) => (
-                    <Badge key={c.id} variant="secondary">
-                      {c.name}
-                    </Badge>
-                  ))
-                ) : (
-                  <span className="text-sm text-muted-foreground italic">
-                    No categories assigned
-                  </span>
-                )}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {course.categories && course.categories.length > 0 ? (
+                course.categories.map((c: any) => (
+                  <Badge key={c.id} variant="secondary">
+                    {c.name}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-sm text-muted-foreground italic">
+                  No categories assigned
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="col-span-2 space-y-2">
             <Label>Link</Label>
-            {isEditing ? (
+            {isEditing && canEditGeneralInfo ? (
               <Input
                 value={editForm.link_to_course}
                 onChange={(e) =>
@@ -484,7 +413,7 @@ export default function AdminCourseDetailPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="subjects" className="cursor-pointer">
-            <BookOpen className="h-4 w-4 mr-2" /> Subjects
+            <BookOpen className="h-4 w-4 mr-2" /> Curriculum
           </TabsTrigger>
           <TabsTrigger value="people" className="cursor-pointer">
             <Users className="h-4 w-4 mr-2" /> People
@@ -494,9 +423,10 @@ export default function AdminCourseDetailPage() {
         <TabsContent value="subjects" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Curriculum</CardTitle>
+              <CardTitle>Curriculum Management</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* SubjectsTab sẽ hoạt động ở chế độ Edit nếu nút "Manage Course" được bật */}
               <SubjectsTab
                 courseId={courseId}
                 isEditing={isEditing}
@@ -511,24 +441,26 @@ export default function AdminCourseDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardContent className="pt-6">
+                {/* Supervisor chỉ xem danh sách Trainer, không được sửa */}
                 <PeopleList
                   title="Trainers"
                   type="Supervisor"
                   data={supervisorList}
                   onAdd={handleAddSupervisor}
-                  canEdit={canManageSupervisors}
+                  canEdit={canManageSupervisors} // false nếu là Supervisor
                   onDeleteClick={(id) => confirmDeletePerson(id, "Supervisor")}
                 />
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
+                {/* Supervisor được quyền thêm/xóa Trainee */}
                 <PeopleList
                   title="Trainees"
                   type="Trainee"
                   data={trainees}
                   onAdd={handleAddTrainee}
-                  canEdit={true}
+                  canEdit={true} // Supervisor có thể quản lý học viên
                   onDeleteClick={(id) => confirmDeletePerson(id, "Trainee")}
                 />
               </CardContent>
@@ -537,7 +469,8 @@ export default function AdminCourseDetailPage() {
         </TabsContent>
       </Tabs>
 
-      {isEditing && (
+      {/* Chỉ hiện thanh Save nếu đang Edit VÀ có quyền sửa thông tin chung (Admin) */}
+      {isEditing && canEditGeneralInfo && (
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 flex justify-end gap-4 shadow-lg z-20">
           <div className="container max-w-5xl flex justify-end">
             <Button
