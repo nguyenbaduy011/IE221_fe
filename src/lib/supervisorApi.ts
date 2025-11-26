@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axiosClient from "@/lib/axiosClient";
-import {  DashboardCourse, DashboardStats } from "@/types/course";
+import {  Category, DashboardCourse, DashboardStats } from "@/types/course";
 import { User } from "@/types/user";
 
 export interface SupervisorCourseDetail extends DashboardCourse {
@@ -88,6 +88,11 @@ export const supervisorApi = {
     return axiosClient.get(`/api/supervisor/courses/${courseId}/subjects/`);
   },
 
+  getAllCategories() {
+    // API này cần backend hỗ trợ route tương ứng, hoặc dùng chung viewset của Admin với permission phù hợp
+    return axiosClient.get<Category[]>("/api/supervisor/categories/"); 
+  },
+
   // Thêm môn học (Mới hoặc Có sẵn)
   addSubject(courseId: number, data: any) {
     return axiosClient.post(`/api/supervisor/courses/${courseId}/add-subject/`, data);
@@ -130,5 +135,33 @@ export const supervisorApi = {
   deleteTask(taskId: number) {
     // Route cần thêm: path("supervisor/tasks/<int:pk>/detail/", ...)
     return axiosClient.delete(`/api/supervisor/tasks/${taskId}/detail/`);
+  },
+
+  createCourse(payload: any) {
+    const formData = new FormData();
+    formData.append("name", payload.name);
+    formData.append("start_date", payload.start_date);
+    formData.append("finish_date", payload.finish_date);
+    if (payload.link_to_course) formData.append("link_to_course", payload.link_to_course);
+    if (payload.status !== undefined) formData.append("status", payload.status.toString());
+    if (payload.image) formData.append("image", payload.image);
+
+    if (payload.subjects) {
+      payload.subjects.forEach((id: number) => formData.append("subjects", id.toString()));
+    }
+    if (payload.supervisors) {
+      payload.supervisors.forEach((id: number) => formData.append("supervisors", id.toString()));
+    }
+    if (payload.categories) {
+      payload.categories.forEach((id: number) => formData.append("categories", id.toString()));
+    }
+
+    return axiosClient.post("/api/supervisor/courses/create/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  getAllSubjects() {
+      return axiosClient.get("/api/supervisor/subjects/");
   },
 };
