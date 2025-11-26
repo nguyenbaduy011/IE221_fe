@@ -14,13 +14,16 @@ import {
   Users,
   AlertCircle,
   ArrowLeft,
+  Eye,
+  Clock,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { toast, Toaster } from "sonner";
 
 import axiosClient from "@/lib/axiosClient";
 import { courseApi } from "@/lib/courseApi";
-import { adminApi, AdminCourseDetail } from "@/lib/adminApi"; // Vẫn dùng type từ adminApi hoặc supervisorApi
+import { adminApi, AdminCourseDetail } from "@/lib/adminApi";
+import { supervisorApi } from "@/lib/supervisorApi"; // Thêm import này
 import { User } from "@/types/user";
 import {
   UserRole,
@@ -51,13 +54,16 @@ import { SubjectsTab } from "@/components/SubjectsTab";
 import { BackButton } from "@/components/ui/back-button";
 
 // --- HELPERS ---
-const getInitials = (name: string) =>
-  name
+const getInitials = (name: string | null | undefined) => {
+  if (!name) return "";
+
+  return name
     .split(" ")
     .map((word) => word[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
+};
 
 const getImageUrl = (path: string | null | undefined) => {
   if (!path) return "";
@@ -99,7 +105,7 @@ const StatusBadge = ({ status }: { status: number }) => {
 export default function SupervisorCourseDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const courseId = Number(params.id);
+  const courseId = Number(params.courseId);
 
   // State
   const [role, setRole] = useState<UserRole>("TRAINEE");
@@ -136,7 +142,6 @@ export default function SupervisorCourseDetailPage() {
         const user = (res.data as any).data || res.data;
         if (user && user.role) {
           setRole(user.role);
-          // Nếu không phải Supervisor hoặc Admin thì đá ra
           if (user.role !== "SUPERVISOR" && user.role !== "ADMIN") {
             router.push("/");
           }
@@ -155,39 +160,85 @@ export default function SupervisorCourseDetailPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Supervisor chỉ fetch detail và trainees, không fetch categories
-      const [courseRes, traineesRes] = await Promise.all([
+
+      // Gọi API song song
+      const [courseRes, traineesRes, categoriesRes] = await Promise.all([
         courseApi.getDetail(courseId, role),
         courseApi.getTrainees(courseId, role),
+        supervisorApi.getAllCategories(),
       ]);
 
-      const courseData = (courseRes.data as any).data || courseRes.data;
-
-      // Fallback data structure cũ
-      if (!courseData.supervisors && courseData.members?.trainers) {
-        courseData.supervisors = courseData.members.trainers.list.map(
-          (t: any) => ({ id: Math.random(), supervisor: t })
-        );
+      let courseData = (courseRes.data as any).data || courseRes.data;
+      if (courseData && courseData.data && !courseData.name) {
+        courseData = courseData.data;
       }
       setCourse(courseData);
 
-      const traineesData =
-        (traineesRes.data as any).data ||
-        (traineesRes.data as any).results ||
-        traineesRes.data;
-      setTrainees(Array.isArray(traineesData) ? traineesData : []);
+      // --- XỬ LÝ TRAINEES (SỬA LỖI MAP IS NOT A FUNCTION) ---
+      let traineesRaw: any = traineesRes;
 
-      // Setup Edit Form (Dù không cho sửa nhưng vẫn cần state để không lỗi logic)
-      setEditForm({
-        name: courseData.name || "",
-        start_date: courseData.start_date || "",
-        finish_date: courseData.finish_date || "",
-        link_to_course: courseData.link_to_course || "",
-        category_ids: courseData.categories
-          ? courseData.categories.map((c: any) => c.id)
-          : [],
-      });
+      // Bóc lớp data của axios nếu có
+      if (traineesRaw.data) traineesRaw = traineesRaw.data;
+
+      // Bóc tiếp nếu backend bọc thêm lớp data nữa
+      if (traineesRaw.data && !Array.isArray(traineesRaw))
+        traineesRaw = traineesRaw.data;
+
+      let validTrainees: User[] = [];
+
+      if (Array.isArray(traineesRaw)) {
+        validTrainees = traineesRaw;
+      } else if (traineesRaw?.results && Array.isArray(traineesRaw.results)) {
+        // Trường hợp phân trang Django
+        validTrainees = traineesRaw.results;
+      } else if (traineesRaw?.data && Array.isArray(traineesRaw.data)) {
+        // Trường hợp backend bọc trong .data
+        validTrainees = traineesRaw.data;
+      } else {
+        console.warn(
+          "Trainees data format unknown, fallback to empty array:",
+          traineesRaw
+        );
+        validTrainees = []; // Fallback an toàn tuyệt đối
+      }
+
+      console.log("Final Trainees List:", validTrainees);
+      setTrainees(validTrainees);
+
+      let validCategories: Category[] = [];
+
+      // Lấy data gốc từ axios
+      const rawCat = (categoriesRes.data as any) || categoriesRes;
+
+      // Bóc tách các trường hợp API trả về:
+      if (Array.isArray(rawCat)) {
+        // Trường hợp 1: Trả về mảng trực tiếp [{}, {}]
+        validCategories = rawCat;
+      } else if (rawCat?.data && Array.isArray(rawCat.data)) {
+        // Trường hợp 2: Bọc trong data { data: [] }
+        validCategories = rawCat.data;
+      } else if (rawCat?.results && Array.isArray(rawCat.results)) {
+        // Trường hợp 3: Phân trang Django { count: 10, results: [] }
+        validCategories = rawCat.results;
+      }
+
+      console.log("Final Categories List:", validCategories);
+      setAvailableCategories(validCategories);
+
+      // Setup Form dữ liệu cho chế độ Edit
+      if (courseData) {
+        setEditForm({
+          name: courseData.name || "",
+          start_date: courseData.start_date || "",
+          finish_date: courseData.finish_date || "",
+          link_to_course: courseData.link_to_course || "",
+          category_ids: courseData.categories
+            ? courseData.categories.map((c: any) => c.id)
+            : [],
+        });
+      }
     } catch (error) {
+      console.error("Fetch error details:", error);
       toast.error("Failed to load data or access denied");
       router.push("/supervisor/courses");
     } finally {
@@ -200,12 +251,12 @@ export default function SupervisorCourseDetailPage() {
   }, [courseId, loadingRole, role]);
 
   const handleSave = async () => {
+    // Supervisor logic save nếu cần (hiện tại Admin mới sửa được general info)
     setIsEditing(false);
-
     toast.info("Exited edit mode.");
   };
 
-  // Logic thêm/xóa Trainee/Supervisor
+  // Logic thêm/xóa Trainee/Supervisor (Giữ nguyên)
   const handleAddTrainee = async (uid: number) => {
     try {
       await courseApi.addTrainees(courseId, [uid], role);
@@ -242,7 +293,6 @@ export default function SupervisorCourseDetailPage() {
       toast.success("Supervisor removed");
       fetchData();
     } catch (e: any) {
-      // Hiển thị lỗi từ backend (ví dụ: không thể xóa chính mình)
       toast.error(e.response?.data?.detail || "Failed to remove supervisor");
     }
   };
@@ -267,21 +317,18 @@ export default function SupervisorCourseDetailPage() {
     );
   if (!course) return <div className="p-10 text-center">Course not found.</div>;
 
-  const supervisorList =
-    course.supervisors?.map((s: any) => s.supervisor || s) || [];
+  const rawSupervisors = course?.supervisors || [];
+  const supervisorList = Array.isArray(rawSupervisors)
+    ? rawSupervisors.map((s: any) => s.supervisor || s)
+    : [];
 
-  // --- PHÂN QUYỀN QUAN TRỌNG ---
-  // Chỉ Admin mới được quản lý danh sách Supervisor
   const canManageSupervisors = role === "ADMIN";
-
-  // Chỉ Admin mới được sửa thông tin chung (Tên, ngày, danh mục)
   const canEditGeneralInfo = role === "ADMIN";
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6 pb-24">
       <Toaster position="top-center" richColors />
 
-      {/* Nút Back trỏ về trang Supervisor */}
       <BackButton href="/supervisor/courses" />
 
       <div className="flex justify-between items-center">
@@ -293,7 +340,7 @@ export default function SupervisorCourseDetailPage() {
         >
           {isEditing ? (
             <>
-              <X className="mr-2 h-4 w-4" /> Exit Edit Mode
+              <X className="mr-2 h-4 w-4" /> Exit Manage Mode
             </>
           ) : (
             <>
@@ -318,7 +365,6 @@ export default function SupervisorCourseDetailPage() {
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">Name:</span>
-                {/* Chỉ cho sửa tên nếu là Admin, Supervisor chỉ xem */}
                 {isEditing && canEditGeneralInfo ? (
                   <Input
                     value={editForm.name}
@@ -369,7 +415,7 @@ export default function SupervisorCourseDetailPage() {
             )}
           </div>
 
-          {/* CATEGORIES: Supervisor luôn chỉ xem (Read-only) */}
+          {/* CATEGORIES: Hiển thị Categories dạng Read-only (Badges) cho cả Supervisor */}
           <div className="col-span-2 space-y-2">
             <Label>Categories</Label>
             <div className="flex flex-wrap gap-2">
@@ -409,7 +455,7 @@ export default function SupervisorCourseDetailPage() {
         </CardContent>
       </Card>
 
-      {/* TABS AREA */}
+      {/* Các phần Tabs giữ nguyên */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="subjects" className="cursor-pointer">
@@ -419,48 +465,130 @@ export default function SupervisorCourseDetailPage() {
             <Users className="h-4 w-4 mr-2" /> People
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="subjects" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle>Curriculum Management</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* SubjectsTab sẽ hoạt động ở chế độ Edit nếu nút "Manage Course" được bật */}
-              <SubjectsTab
-                courseId={courseId}
-                isEditing={isEditing}
-                role={role}
-                setConfirmModal={setConfirmModal}
-              />
+              {isEditing ? (
+                /* Chế độ chỉnh sửa: Dùng component cũ */
+                <SubjectsTab
+                  courseId={courseId}
+                  isEditing={isEditing}
+                  role={role}
+                  setConfirmModal={setConfirmModal}
+                />
+              ) : (
+                /* Chế độ xem: Hiển thị danh sách tĩnh có nút Detail */
+                <div className="space-y-3">
+                  {/* FIX LỖI TS: Ép kiểu (course as any) để truy cập course_subjects */}
+                  {(course as any)?.course_subjects &&
+                  (course as any).course_subjects.length > 0 ? (
+                    (course as any).course_subjects
+                      // Sắp xếp theo position
+                      .sort(
+                        (a: any, b: any) =>
+                          (a.position || 0) - (b.position || 0)
+                      )
+                      .map((item: any, index: number) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center p-4 gap-4 border rounded-lg hover:border-primary/40 transition-colors bg-card"
+                        >
+                          {/* Cột 1: Index Badge */}
+                          <div className="flex-shrink-0">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border border-primary/20">
+                              {index + 1}
+                            </div>
+                          </div>
+
+                          {/* Cột 2: Thông tin Subject */}
+                          <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                            <div>
+                              <h4 className="font-semibold text-base truncate">
+                                {item.subject?.name}
+                              </h4>
+                              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />{" "}
+                                  {item.subject?.estimated_time_days || 0} days
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {item.subject?.tasks?.length || 0} tasks
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Cột 3: Ngày tháng */}
+                            <div className="hidden md:block text-xs text-muted-foreground text-right">
+                              <div>
+                                Start:{" "}
+                                {item.start_date
+                                  ? dayjs(item.start_date).format("DD/MM/YYYY")
+                                  : "--"}
+                              </div>
+                              <div>
+                                End:{" "}
+                                {item.finish_date
+                                  ? dayjs(item.finish_date).format("DD/MM/YYYY")
+                                  : "--"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Cột 4: Nút Detail (MỚI) */}
+                          <div className="flex-shrink-0 pl-2 border-l ml-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-primary hover:bg-primary/10 hover:text-primary cursor-pointer"
+                              title="View Subject Details"
+                              onClick={() =>
+                                // Chuyển hướng đến: /supervisor/courses/{courseId}/subjects/{course_subject_id}
+                                router.push(
+                                  `/supervisor/courses/${courseId}/subject/${item.id}`
+                                )
+                              }
+                            >
+                              <Eye className="w-5 h-5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground italic border border-dashed rounded-md">
+                      No subjects added yet.
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
-
         <TabsContent value="people" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardContent className="pt-6">
-                {/* Supervisor chỉ xem danh sách Trainer, không được sửa */}
                 <PeopleList
                   title="Trainers"
                   type="Supervisor"
                   data={supervisorList}
                   onAdd={handleAddSupervisor}
-                  canEdit={canManageSupervisors} // false nếu là Supervisor
+                  canEdit={canManageSupervisors}
                   onDeleteClick={(id) => confirmDeletePerson(id, "Supervisor")}
                 />
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                {/* Supervisor được quyền thêm/xóa Trainee */}
                 <PeopleList
                   title="Trainees"
                   type="Trainee"
                   data={trainees}
                   onAdd={handleAddTrainee}
-                  canEdit={true} // Supervisor có thể quản lý học viên
+                  canEdit={true}
                   onDeleteClick={(id) => confirmDeletePerson(id, "Trainee")}
                 />
               </CardContent>
@@ -469,7 +597,6 @@ export default function SupervisorCourseDetailPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Chỉ hiện thanh Save nếu đang Edit VÀ có quyền sửa thông tin chung (Admin) */}
       {isEditing && canEditGeneralInfo && (
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 flex justify-end gap-4 shadow-lg z-20">
           <div className="container max-w-5xl flex justify-end">
@@ -487,7 +614,7 @@ export default function SupervisorCourseDetailPage() {
         </div>
       )}
 
-      {/* CONFIRMATION MODAL */}
+      {/* Modal giữ nguyên */}
       <Dialog
         open={confirmModal.isOpen}
         onOpenChange={(open) =>

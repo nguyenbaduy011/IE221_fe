@@ -178,7 +178,7 @@ export const adminApi = {
   },
 
   getAllCategories() {
-    return axiosClient.get<Category[]>("/api/admin/categories/"); // Giả sử bạn đã có API này
+    return axiosClient.get<Category[]>("/api/admin/categories/");
   },
 
   deleteCourse(id: number) {

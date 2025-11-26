@@ -2,11 +2,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, BookOpen } from "lucide-react"; // Bỏ icon Plus
+import { Loader2, BookOpen, Plus } from "lucide-react"; // Import thêm icon Plus
+import { Button } from "@/components/ui/button"; // Import Button component
+import Link from "next/link"; // Import Link component
 import { DashboardCourse } from "@/types/course";
-import { supervisorApi } from "@/lib/supervisorApi"; // Đảm bảo đã có file này
-import { CourseDataTable } from "./course-data-table"; // Import Table từ Admin (tái sử dụng)
-import { getSupervisorColumns } from "./supervisor-course-columns"; // Import columns vừa tạo ở trên
+import { supervisorApi } from "@/lib/supervisorApi";
+import { CourseDataTable } from "./course-data-table";
+import { getSupervisorColumns } from "./supervisor-course-columns";
 
 export default function SupervisorCourseManagementPage() {
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
@@ -15,10 +17,8 @@ export default function SupervisorCourseManagementPage() {
   const fetchMyCourses = async () => {
     try {
       setLoading(true);
-      // 1. Gọi API lấy khóa học CỦA TÔI
       const response = await supervisorApi.getMyCourses();
 
-      // 2. Xử lý dữ liệu trả về an toàn
       const payload = (response as any).data || response;
       let data: DashboardCourse[] = [];
 
@@ -68,7 +68,12 @@ export default function SupervisorCourseManagementPage() {
           </p>
         </div>
 
-        {/* ĐÃ ẨN NÚT TẠO KHÓA HỌC Ở ĐÂY */}
+        <Button asChild className="shrink-0 shadow-sm">
+          <Link href="/supervisor/courses/create">
+            <Plus className="w-5 h-5 mr-2" />
+            Create New Course
+          </Link>
+        </Button>
       </div>
 
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
@@ -78,7 +83,6 @@ export default function SupervisorCourseManagementPage() {
           </h2>
         </div>
         <div className="p-6">
-          {/* Truyền columns dành riêng cho Supervisor */}
           <CourseDataTable columns={getSupervisorColumns} data={courses} />
         </div>
       </div>
