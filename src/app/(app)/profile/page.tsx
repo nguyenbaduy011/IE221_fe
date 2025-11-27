@@ -73,7 +73,6 @@ export default function ProfilePage() {
     },
   });
 
-  // --- SỬA ĐỔI QUAN TRỌNG: Cập nhật form khi có user data ---
   useEffect(() => {
     if (user) {
       console.log("User data loaded into Form:", user);
@@ -92,7 +91,6 @@ export default function ProfilePage() {
   const onUpdateProfile = async (data: UpdateProfileFormValues) => {
     setIsUpdating(true);
     try {
-      // Khi gửi lên, birthday rỗng ("") nên gửi là null để backend không lỗi date format
       await authApi.updateProfile({
         ...data,
         birthday: data.birthday ? data.birthday : null,
@@ -301,11 +299,9 @@ export default function ProfilePage() {
                               </FormLabel>
                               <Select
                                 onValueChange={field.onChange}
-                                // Ép kiểu về string để khớp với value của SelectItem
                                 value={
                                   field.value ? String(field.value) : undefined
                                 }
-                                // QUAN TRỌNG: Thêm key để ép re-render khi giá trị thay đổi
                                 key={field.value}
                               >
                                 <FormControl>
@@ -314,7 +310,6 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {/* Value phải là string */}
                                   <SelectItem value="1">Male</SelectItem>
                                   <SelectItem value="2">Female</SelectItem>
                                   <SelectItem value="3">Other</SelectItem>
@@ -325,7 +320,6 @@ export default function ProfilePage() {
                           )}
                         />
 
-                        {/* Birthday */}
                         <FormField
                           control={profileForm.control}
                           name="birthday"
@@ -338,7 +332,6 @@ export default function ProfilePage() {
                                 <Input
                                   type="date"
                                   {...field}
-                                  // Xử lý null/undefined thành chuỗi rỗng
                                   value={field.value || ""}
                                   className="h-10"
                                 />
@@ -404,7 +397,7 @@ export default function ProfilePage() {
                                 onClick={() =>
                                   setShowCurrentPass(!showCurrentPass)
                                 }
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                               >
                                 {showCurrentPass ? (
                                   <EyeOff className="h-4 w-4" />
@@ -441,7 +434,7 @@ export default function ProfilePage() {
                               <button
                                 type="button"
                                 onClick={() => setShowNewPass(!showNewPass)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                               >
                                 {showNewPass ? (
                                   <EyeOff className="h-4 w-4" />
@@ -508,7 +501,7 @@ export default function ProfilePage() {
                                 onClick={() =>
                                   setShowConfirmPass(!showConfirmPass)
                                 }
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                               >
                                 {showConfirmPass ? (
                                   <EyeOff className="h-4 w-4" />

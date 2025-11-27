@@ -26,9 +26,9 @@ export default function DailyReportsList({
 }: Props) {
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-60 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="ml-4 text-xl font-medium text-blue-600">
+      <div className="flex justify-center items-center h-60 bg-card rounded-xl shadow-lg border border-border">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="ml-4 text-xl font-medium text-primary">
           Loading reports...
         </p>
       </div>
@@ -37,9 +37,9 @@ export default function DailyReportsList({
 
   if (reports.length === 0 && totalPages <= 1) {
     return (
-      <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+      <div className="text-center py-12 bg-card rounded-xl shadow-lg border border-border">
         <svg
-          className="mx-auto h-12 w-12 text-gray-400"
+          className="mx-auto h-12 w-12 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -52,10 +52,10 @@ export default function DailyReportsList({
             d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        <h3 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
+        <h3 className="mt-2 text-xl font-semibold text-card-foreground">
           No Daily Reports Found
         </h3>
-        <p className="mt-1 text-base text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-base text-muted-foreground">
           Try adjusting your filters or create a new report to get started.
         </p>
       </div>
@@ -71,8 +71,8 @@ export default function DailyReportsList({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-border">
+          <div className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </div>
 
@@ -82,7 +82,7 @@ export default function DailyReportsList({
               size="sm"
               onClick={onPreviousPage}
               disabled={currentPage === 1}
-              className="cursor-pointer dark:bg-gray-800 dark:border-gray-700"
+              className="cursor-pointer"
             >
               Previous
             </Button>
@@ -91,7 +91,7 @@ export default function DailyReportsList({
               size="sm"
               onClick={onNextPage}
               disabled={currentPage === totalPages}
-              className="cursor-pointer dark:bg-gray-800 dark:border-gray-700"
+              className="cursor-pointer"
             >
               Next
             </Button>

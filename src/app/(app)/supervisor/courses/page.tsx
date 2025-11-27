@@ -68,7 +68,7 @@ export default function SupervisorCourseManagementPage() {
           </p>
         </div>
 
-        <Button asChild className="shrink-0 shadow-sm">
+        <Button asChild className="shrink-0 shadow-sm cursor-pointer">
           <Link href="/supervisor/courses/create">
             <Plus className="w-5 h-5 mr-2" />
             Create New Course

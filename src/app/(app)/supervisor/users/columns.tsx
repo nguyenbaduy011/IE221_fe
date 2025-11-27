@@ -223,7 +223,7 @@ export const getSupervisorColumns = (
             size="sm"
             onClick={() => onToggleStatus(user)}
             disabled={isSelf || false}
-            className={`text-xs font-medium transition-all duration-200 ${
+            className={`text-xs font-medium transition-all duration-200 cursor-pointer ${
               user.is_active
                 ? "hover:text-red-600 hover:border-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 dark:hover:border-red-500/30"
                 : "hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30"

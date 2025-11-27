@@ -66,7 +66,7 @@ export default function ActivateAccountPage() {
           </h2>
           <p className="text-muted-foreground">{error}</p>
 
-          <Button asChild className="min-h-10">
+          <Button asChild className="min-h-10 cursor-pointer">
             <Link href="/register">Register Again</Link>
           </Button>
         </div>
@@ -84,7 +84,7 @@ export default function ActivateAccountPage() {
             Your account has been successfully activated.
           </p>
 
-          <Button asChild className="min-h-10">
+          <Button asChild className="min-h-10 cursor-pointer">
             <Link href="/login">Go to Login</Link>
           </Button>
         </div>

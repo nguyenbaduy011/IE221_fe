@@ -42,7 +42,11 @@ export const PeopleList = ({
           {title} ({data.length})
         </h3>
         {canEdit && (
-          <Button size="sm" onClick={() => setIsDialogOpen(true)}>
+          <Button
+            size="sm"
+            onClick={() => setIsDialogOpen(true)}
+            className="cursor-pointer"
+          >
             <UserPlus className="w-4 h-4 mr-2" /> Add{" "}
             {type === "Supervisor" ? "Trainer" : type}
           </Button>
@@ -79,7 +83,7 @@ export const PeopleList = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-500 hover:text-red-600 hover:bg-red-100/10"
+                className="text-red-500 hover:text-red-600 hover:bg-red-100/10 cursor-pointer"
                 onClick={() => onDeleteClick(user.id)}
               >
                 <Trash2 className="w-4 h-4" />

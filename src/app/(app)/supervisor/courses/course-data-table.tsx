@@ -112,7 +112,7 @@ export function CourseDataTable<TData, TValue>({
             <Button
               variant="ghost"
               onClick={() => table.resetColumnFilters()}
-              className="px-2 lg:px-3"
+              className="px-2 lg:px-3 cursor-pointer"
             >
               Reset
             </Button>
@@ -187,6 +187,7 @@ export function CourseDataTable<TData, TValue>({
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
+          className="cursor-pointer"
         >
           Previous
         </Button>
@@ -195,6 +196,7 @@ export function CourseDataTable<TData, TValue>({
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
+          className="cursor-pointer"
         >
           Next
         </Button>

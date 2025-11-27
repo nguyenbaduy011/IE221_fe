@@ -169,7 +169,7 @@ export default function RegisterPage() {
                         type="button"
                         tabIndex={-1}
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -204,7 +204,7 @@ export default function RegisterPage() {
                       {/* Optional: Forgot password */}
                       <button
                         type="button"
-                        className="text-xs mt-2 text-primary hover:underline"
+                        className="text-xs mt-2 text-primary hover:underline cursor-pointer"
                         onClick={() => router.push("/forgot-password")}
                       >
                         Forgot password?
@@ -240,7 +240,7 @@ export default function RegisterPage() {
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -259,7 +259,7 @@ export default function RegisterPage() {
 
             {/* Submit */}
             <Button
-              className="w-full"
+              className="w-full cursor-pointer"
               type="submit"
               disabled={isLoading}
               role="status"
@@ -278,7 +278,7 @@ export default function RegisterPage() {
             <div className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <button
-                className="text-primary font-semibold hover:underline"
+                className="text-primary font-semibold hover:underline cursor-pointer"
                 type="button"
                 onClick={() => router.push("/login")}
               >

@@ -102,12 +102,13 @@ export default function CompletionBox({
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm space-y-6">
+      {/* Container: bg-card, text-card-foreground */}
+      <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm space-y-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-bold text-foreground">
             {detail.subject_name}
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             (Time: {detail.estimated_time_days} {dayText})
           </p>
         </div>
@@ -131,7 +132,7 @@ export default function CompletionBox({
 
           <div className="space-y-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-xs font-medium text-muted-foreground">
                 Actual start day
               </label>
               <Input
@@ -143,7 +144,7 @@ export default function CompletionBox({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-xs font-medium text-muted-foreground">
                 Actual end day
               </label>
               <Input
@@ -160,19 +161,23 @@ export default function CompletionBox({
         {/* Finish Button */}
         <div className="pt-2">
           {isFinished ? (
+            // Finished State: Success style nhẹ nhàng
             <Button
-              className="w-full bg-green-600 hover:bg-green-700 text-white cursor-default"
+              variant="outline"
+              className="cursor-pointer w-full border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 opacity-100 disabled:opacity-100"
               disabled
             >
               Finished
             </Button>
           ) : (
+            // Action Button
             <Button
-              className={`w-full ${
+              className={`w-full cursor-pointer ${
                 unfinishedTasksCount > 0
-                  ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-yellow-600 hover:bg-yellow-700 text-white dark:bg-yellow-700 dark:hover:bg-yellow-800" // Warning state
+                  : ""
               }`}
+              variant={unfinishedTasksCount > 0 ? "default" : "default"} // Dùng default variant để lấy style gốc, sau đó override màu nếu cần
               onClick={handleFinishClick}
               disabled={loading}
             >
@@ -191,19 +196,28 @@ export default function CompletionBox({
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-muted-foreground">
               You still have{" "}
-              <span className="font-bold text-red-500">
+              <span className="font-bold text-destructive">
                 {unfinishedTasksCount}
               </span>{" "}
               incomplete task(s). Please confirm the completion of the course.
             </p>
           </div>
           <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmOpen(false)}
+              className="cursor-pointer"
+            >
               Cancel
             </Button>
-            <Button variant="default" onClick={submitFinish} disabled={loading}>
+            <Button
+              variant="default"
+              onClick={submitFinish}
+              disabled={loading}
+              className="cursor-pointer"
+            >
               {loading ? "Processing..." : "Confirm"}
             </Button>
           </DialogFooter>

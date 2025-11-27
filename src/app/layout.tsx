@@ -43,7 +43,7 @@ export default function RootLayout({
             </ThemeProvider>
           </AuthGuard>
         </AuthProvider>
-        <Toaster />
+        <Toaster richColors />
       </body>
     </html>
   );

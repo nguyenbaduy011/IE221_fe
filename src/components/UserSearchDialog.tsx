@@ -84,7 +84,12 @@ export const UserSearchDialog = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Button disabled={isSearching} variant="ghost" size="icon">
+            <Button
+              disabled={isSearching}
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer"
+            >
               <Search className="w-4 h-4" />
             </Button>
           </div>
@@ -113,6 +118,7 @@ export const UserSearchDialog = ({
                         onSelect(u.id);
                         onClose();
                       }}
+                      className="cursor-pointer"
                     >
                       Select
                     </Button>

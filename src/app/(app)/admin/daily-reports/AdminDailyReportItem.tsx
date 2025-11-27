@@ -52,7 +52,7 @@ export default function AdminDailyReportItem({ dailyReport }: Props) {
           <Button
             variant="outline"
             size="sm"
-            className="hover:bg-accent hover:text-accent-foreground"
+            className="hover:bg-accent hover:text-accent-foreground cursor-pointer"
           >
             <Eye className="w-4 h-4 mr-1" /> View Report
           </Button>

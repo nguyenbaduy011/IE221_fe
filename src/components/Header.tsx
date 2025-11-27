@@ -131,7 +131,7 @@ export default function Header() {
             </DropdownMenu>
           </>
         ) : (
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="cursor-pointer">
             <Link href="/login">Login</Link>
           </Button>
         )}

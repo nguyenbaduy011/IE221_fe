@@ -183,13 +183,16 @@ export default function AdminUserPage() {
         <div className="flex gap-3 shrink-0">
           <Button
             variant="outline"
-            className="shadow-sm"
+            className="shadow-sm cursor-pointer"
             onClick={() => setBulkAddOpen(true)}
           >
             <Upload className="w-4 h-4 mr-2" />
             Bulk Import
           </Button>
-          <Button className="shadow-sm" onClick={() => setCreateOpen(true)}>
+          <Button
+            className="shadow-sm cursor-pointer"
+            onClick={() => setCreateOpen(true)}
+          >
             <UserPlus className="w-4 h-4 mr-2" />
             Add User
           </Button>

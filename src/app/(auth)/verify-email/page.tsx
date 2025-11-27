@@ -106,7 +106,7 @@ export default function VerifyEmailPage() {
 
           <Button
             variant="outline"
-            className="w-full min-h-10"
+            className="w-full min-h-10 cursor-pointer"
             onClick={() => router.push("/login")}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

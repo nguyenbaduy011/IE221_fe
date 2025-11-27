@@ -132,7 +132,7 @@ export default function TaskListPage() {
 
         {/* Updated Link to Supervisor route */}
         <Link href="/supervisor/master-data/tasks/new">
-          <Button className="w-full sm:w-auto shadow-sm">
+          <Button className="w-full sm:w-auto shadow-sm cursor-pointer">
             <Plus className="w-4 h-4 mr-2" /> Add Task
           </Button>
         </Link>
@@ -189,7 +189,7 @@ export default function TaskListPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
@@ -197,7 +197,7 @@ export default function TaskListPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
                         onClick={() => confirmDelete(task.id)}
                       >
                         <Trash2 className="w-4 h-4" />

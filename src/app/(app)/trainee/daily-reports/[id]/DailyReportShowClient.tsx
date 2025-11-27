@@ -36,7 +36,7 @@ export default function DailyReportShowClient({ id }: { id: string }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -44,10 +44,12 @@ export default function DailyReportShowClient({ id }: { id: string }) {
   if (!report) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <h2 className="text-xl font-semibold text-red-500">Report not found</h2>
+        <h2 className="text-xl font-semibold text-destructive">
+          Report not found
+        </h2>
         <Link
           href="/trainee/daily-reports"
-          className="text-blue-600 hover:underline mt-4 inline-block"
+          className="text-primary hover:underline mt-4 inline-block"
         >
           Return to list
         </Link>
@@ -61,7 +63,7 @@ export default function DailyReportShowClient({ id }: { id: string }) {
         <Link href="/trainee/daily-reports">
           <Button
             variant="ghost"
-            className="pl-0 hover:bg-transparent hover:text-blue-600"
+            className="pl-0 hover:bg-transparent hover:text-primary cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Reports
@@ -70,8 +72,8 @@ export default function DailyReportShowClient({ id }: { id: string }) {
         <div
           className={`px-3 py-1 rounded-full text-sm font-medium ${
             report.status === DailyReportStatus.Submitted
-              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+              ? "bg-primary/10 text-primary" 
+              : "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400" 
           }`}
         >
           {report.status === DailyReportStatus.Submitted
@@ -80,38 +82,40 @@ export default function DailyReportShowClient({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg overflow-hidden">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border bg-muted/30">
+          <h1 className="text-2xl font-bold text-foreground mb-4">
             Daily Report Details
           </h1>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
+            <div className="flex items-center text-muted-foreground">
               <BookOpen className="w-4 h-4 mr-2 text-blue-500" />
-              <span className="font-medium mr-2">Course:</span>
+              <span className="font-medium mr-2 text-foreground">Course:</span>
               {report.course.name}
             </div>
 
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
+            <div className="flex items-center text-muted-foreground">
               <Calendar className="w-4 h-4 mr-2 text-green-500" />
-              <span className="font-medium mr-2">Date:</span>
+              <span className="font-medium mr-2 text-foreground">Date:</span>
               {new Date(report.created_at).toLocaleDateString()}
             </div>
 
-            <div className="flex items-center text-gray-600 dark:text-gray-300">
+            <div className="flex items-center text-muted-foreground">
               <Clock className="w-4 h-4 mr-2 text-purple-500" />
-              <span className="font-medium mr-2">Last Updated:</span>
+              <span className="font-medium mr-2 text-foreground">
+                Last Updated:
+              </span>
               {new Date(report.updated_at).toLocaleString()}
             </div>
           </div>
         </div>
 
         <div className="p-8">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
             Report Content
           </h3>
-          <div className="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
+          <div className="prose dark:prose-invert max-w-none text-foreground whitespace-pre-wrap leading-relaxed">
             {report.content}
           </div>
         </div>
