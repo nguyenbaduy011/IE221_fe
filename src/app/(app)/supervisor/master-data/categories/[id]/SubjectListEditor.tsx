@@ -106,7 +106,7 @@ export default function SubjectListEditor({ control, allSubjects }: Props) {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                 onClick={() => remove(index)}
               >
                 <Trash2 className="w-4 h-4" />
@@ -118,7 +118,7 @@ export default function SubjectListEditor({ control, allSubjects }: Props) {
         <Button
           type="button"
           variant="outline"
-          className="w-full border-dashed border-2 border-border hover:border-primary/50 hover:bg-primary/5 text-muted-foreground hover:text-primary mt-2"
+          className="w-full border-dashed border-2 border-border hover:border-primary/50 hover:bg-primary/5 text-muted-foreground hover:text-primary mt-2 cursor-pointer"
           onClick={() => append({ subject_id: "" })}
         >
           <Plus className="w-4 h-4 mr-2" /> Add Subject

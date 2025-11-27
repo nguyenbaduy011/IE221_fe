@@ -61,7 +61,7 @@ export default function AdminDailyReportShowClient({ id }: { id: string }) {
           Report not found
         </h2>
         <Link href="/admin/daily-reports">
-          <Button variant="link" className="mt-2 text-primary">
+          <Button variant="link" className="mt-2 text-primary cursor-pointer">
             Return to list
           </Button>
         </Link>
@@ -76,7 +76,7 @@ export default function AdminDailyReportShowClient({ id }: { id: string }) {
         <Link href="/admin/daily-reports">
           <Button
             variant="ghost"
-            className="pl-0 hover:bg-transparent hover:text-primary text-muted-foreground"
+            className="pl-0 hover:bg-transparent hover:text-primary text-muted-foreground cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Reports

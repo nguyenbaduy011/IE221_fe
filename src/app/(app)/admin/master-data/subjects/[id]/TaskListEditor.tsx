@@ -111,7 +111,7 @@ function SortableTaskItem({
         type="button"
         variant="ghost"
         size="icon"
-        className="text-destructive opacity-0 group-hover:opacity-100 transition-all cursor-pointer hover:bg-destructive/10 hover:text-destructive"
+        className="text-destructive opacity-0 group-hover:opacity-100 transition-all cursor-pointer hover:bg-destructive/10 hover:text-destructive" 
         onClick={() => remove(index)}
         title="Delete task"
       >

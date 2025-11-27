@@ -111,7 +111,7 @@ export default function TraineeMyCoursesPage() {
                 size="sm"
                 onClick={handlePrevious}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 shadow-sm"
+                className="flex items-center gap-1 shadow-sm cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" /> Previous
               </Button>
@@ -124,7 +124,7 @@ export default function TraineeMyCoursesPage() {
                       size="sm"
                       variant={currentPage === page ? "default" : "ghost"}
                       onClick={() => handlePageClick(page)}
-                      className={`w-9 h-9 p-0 ${
+                      className={`w-9 h-9 p-0 cursor-pointer ${
                         currentPage === page
                           ? "pointer-events-none shadow-md"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -144,7 +144,7 @@ export default function TraineeMyCoursesPage() {
                 size="sm"
                 onClick={handleNext}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 shadow-sm"
+                className="flex items-center gap-1 shadow-sm cursor-pointer"
               >
                 Next <ChevronRight className="w-4 h-4" />
               </Button>

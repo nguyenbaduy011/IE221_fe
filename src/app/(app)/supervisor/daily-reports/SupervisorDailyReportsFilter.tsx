@@ -99,7 +99,7 @@ export default function SupervisorDailyReportsFilter({
         <div className="flex gap-2 w-full sm:w-auto">
           <Button
             type="submit"
-            className="flex-1 sm:flex-none font-semibold transition-all"
+            className="flex-1 sm:flex-none font-semibold transition-all cursor-pointer"
           >
             Apply Filter
           </Button>
@@ -107,7 +107,7 @@ export default function SupervisorDailyReportsFilter({
             type="button"
             variant="outline"
             onClick={handleReset}
-            className="flex-1 sm:flex-none font-semibold"
+            className="flex-1 sm:flex-none font-semibold cursor-pointer"
           >
             Reset
           </Button>

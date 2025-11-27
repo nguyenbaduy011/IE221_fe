@@ -5,6 +5,7 @@ import { DailyReport, DailyReportStatus } from "@/types/dailyReport";
 import { Course } from "@/types/course";
 import { Button } from "@/components/ui/button";
 import { Save, Send, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils"; // Import cn để merge class nếu cần
 
 export type DailyReportFormData = {
   courseId: number;
@@ -44,22 +45,27 @@ export default function DailyReportForm({
     });
   };
 
+  // Class chung cho Input/Select/Textarea để đồng bộ style
+  const inputClass =
+    "w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50";
+
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm">
+    // Sử dụng bg-card và text-card-foreground cho container
+    <div className="bg-card text-card-foreground border border-border p-6 rounded-xl shadow-sm">
       <form className="space-y-6">
         <div className="space-y-2">
           <label
             htmlFor="course"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-foreground"
           >
-            Select Course <span className="text-red-500">*</span>
+            Select Course <span className="text-destructive">*</span>
           </label>
           <div className="relative">
             <select
               id="course"
               value={courseId}
               onChange={(e) => setCourseId(Number(e.target.value))}
-              className="w-full px-3 py-2 bg-white dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white appearance-none"
+              className={cn(inputClass, "appearance-none")}
               required
               disabled={loading}
             >
@@ -72,9 +78,10 @@ export default function DailyReportForm({
                 </option>
               ))}
             </select>
+            {/* Icon chevron */}
             <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
               <svg
-                className="w-4 h-4 text-gray-400"
+                className="w-4 h-4 text-muted-foreground"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -93,9 +100,9 @@ export default function DailyReportForm({
         <div className="space-y-2">
           <label
             htmlFor="content"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-foreground"
           >
-            Report Content <span className="text-red-500">*</span>
+            Report Content <span className="text-destructive">*</span>
           </label>
           <textarea
             id="content"
@@ -103,19 +110,19 @@ export default function DailyReportForm({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Describe what you learned today..."
-            className="w-full px-3 py-2 bg-white dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none"
+            className={cn(inputClass, "resize-none")}
             required
             disabled={loading}
           />
         </div>
 
-        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-border">
           <Button
             type="button"
             variant="outline"
             onClick={(e) => handleSubmit(e, DailyReportStatus.Draft)}
             disabled={loading || !courseId || !content}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto cursor-pointer"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -130,7 +137,7 @@ export default function DailyReportForm({
             variant="default"
             onClick={(e) => handleSubmit(e, DailyReportStatus.Submitted)}
             disabled={loading || !courseId || !content}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+            className="w-full sm:w-auto cursor-pointer"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -87,7 +87,7 @@ export default function SubjectListPage() {
           </p>
         </div>
         <Link href="/admin/master-data/subjects/new">
-          <Button className="shadow-sm">
+          <Button className="shadow-sm cursor-pointer">
             <Plus className="w-4 h-4 mr-2" /> Add Subject
           </Button>
         </Link>
@@ -152,7 +152,7 @@ export default function SubjectListPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
@@ -161,7 +161,7 @@ export default function SubjectListPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
                         onClick={() => confirmDelete(sub)}
                       >
                         <Trash2 className="w-4 h-4" />

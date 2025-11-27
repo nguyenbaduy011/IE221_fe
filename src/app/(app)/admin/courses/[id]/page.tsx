@@ -13,11 +13,10 @@ import {
   BookOpen,
   Users,
   AlertCircle,
-  ArrowLeft,
   Check,
 } from "lucide-react";
 import dayjs from "dayjs";
-import { toast, Toaster } from "sonner";
+import { toast} from "sonner";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -48,12 +47,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// Import các components con đã tách
 import { PeopleList } from "@/components/PeopleList";
 import { SubjectsTab } from "@/components/SubjectsTab";
 import { BackButton } from "@/components/ui/back-button";
 
-// --- HELPERS ---
 const getInitials = (name: string) =>
   name
     .split(" ")
@@ -111,7 +108,6 @@ export default function AdminCourseDetailPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const courseId = Number(params.id);
-
   const [role, setRole] = useState<UserRole>("TRAINEE");
   const [loadingRole, setLoadingRole] = useState(true);
   const [course, setCourse] = useState<AdminCourseDetail | null>(null);
@@ -317,8 +313,6 @@ export default function AdminCourseDetailPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-6 pb-24">
-      <Toaster position="top-center" richColors />
-
       <BackButton />
 
       <div className="flex justify-between items-center">

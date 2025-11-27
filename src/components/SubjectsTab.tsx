@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import { courseApi } from "@/lib/courseApi";
-import { adminApi, Subject as AdminSubject } from "@/lib/adminApi"; // Import adminApi
+import { adminApi, Subject as AdminSubject } from "@/lib/adminApi";
 import {
   AdminCourseSubject,
   UserRole,
@@ -60,21 +60,29 @@ export const SubjectsTab = ({
   const [subjects, setSubjects] = useState<AdminCourseSubject[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // State Modal
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"new" | "existing">("new");
 
-  // State Tab 1: Create New
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newSubjectDays, setNewSubjectDays] = useState(1);
 
-  // State Tab 2: Select Existing
   const [allSubjects, setAllSubjects] = useState<AdminSubject[]>([]);
   const [loadingAllSubjects, setLoadingAllSubjects] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(
     null
   );
+
+  const [taskDialog, setTaskDialog] = useState<{
+    isOpen: boolean;
+    mode: "add" | "edit";
+    subjectId?: number;
+    taskId?: number;
+  }>({
+    isOpen: false,
+    mode: "add",
+  });
+  const [taskNameInput, setTaskNameInput] = useState("");
 
   const fetchSubjects = async () => {
     try {
@@ -91,7 +99,6 @@ export const SubjectsTab = ({
     }
   };
 
-  // Fetch tất cả môn học (cho Tab Existing)
   const fetchAllSubjects = async () => {
     try {
       setLoadingAllSubjects(true);
@@ -109,7 +116,6 @@ export const SubjectsTab = ({
     fetchSubjects();
   }, [courseId, role]);
 
-  // Load danh sách môn học khi mở tab Existing
   useEffect(() => {
     if (
       isAddDialogOpen &&
@@ -131,7 +137,6 @@ export const SubjectsTab = ({
         }
         payload = { subject_id: selectedSubjectId };
       } else {
-        // Logic thêm môn MỚI
         if (!newSubjectName) {
           toast.error("Subject name is required");
           return;
@@ -148,7 +153,6 @@ export const SubjectsTab = ({
       toast.success("Subject added successfully");
       setIsAddDialogOpen(false);
 
-      // Reset form
       setNewSubjectName("");
       setNewSubjectDays(1);
       setSelectedSubjectId(null);
@@ -204,28 +208,53 @@ export const SubjectsTab = ({
     );
   };
 
-  const handleAddTask = async (csId: number, taskName: string) => {
-    try {
-      await courseApi.addTask(courseId, csId, taskName, role);
-      toast.success("Task added");
-      fetchSubjects();
-    } catch (e) {
-      toast.error("Failed to add task");
-    }
+  // --- LOGIC MỚI CHO TASK ---
+
+  // 1. Hàm mở dialog thêm task
+  const openAddTaskDialog = (subjectId: number) => {
+    setTaskNameInput("");
+    setTaskDialog({ isOpen: true, mode: "add", subjectId });
   };
 
-  const handleEditTask = async (taskId: number, currentName: string) => {
-    const newName = prompt("Rename task:", currentName);
-    if (newName && newName !== currentName) {
-      try {
-        await courseApi.updateTask(taskId, newName, role);
+  // 2. Hàm mở dialog sửa task
+  const openEditTaskDialog = (taskId: number, currentName: string) => {
+    setTaskNameInput(currentName);
+    setTaskDialog({ isOpen: true, mode: "edit", taskId });
+  };
+
+  // 3. Hàm lưu task (gọi khi bấm Save trong dialog)
+  const handleSaveTask = async () => {
+    if (!taskNameInput.trim()) {
+      toast.error("Task name is required");
+      return;
+    }
+
+    try {
+      if (taskDialog.mode === "add" && taskDialog.subjectId) {
+        await courseApi.addTask(
+          courseId,
+          taskDialog.subjectId,
+          taskNameInput,
+          role
+        );
+        toast.success("Task added");
+      } else if (taskDialog.mode === "edit" && taskDialog.taskId) {
+        await courseApi.updateTask(taskDialog.taskId, taskNameInput, role);
         toast.success("Task updated");
-        fetchSubjects();
-      } catch (error) {
-        toast.error("Failed to update task");
       }
+
+      // Đóng dialog và load lại dữ liệu
+      setTaskDialog({ ...taskDialog, isOpen: false });
+      fetchSubjects();
+    } catch (e) {
+      toast.error(
+        taskDialog.mode === "add"
+          ? "Failed to add task"
+          : "Failed to update task"
+      );
     }
   };
+  // --------------------------
 
   const executeDeleteTask = async (taskId: number) => {
     try {
@@ -311,7 +340,7 @@ export const SubjectsTab = ({
         <div className="flex justify-end">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" className="cursor-pointer">
                 <Plus className="w-4 h-4 mr-1" /> Add Subject
               </Button>
             </DialogTrigger>
@@ -413,7 +442,7 @@ export const SubjectsTab = ({
               </Tabs>
 
               <DialogFooter className="mt-2">
-                <Button onClick={handleAddSubject}>
+                <Button onClick={handleAddSubject} className="cursor-pointer">
                   {activeTab === "existing" ? "Add Selected" : "Create"}
                 </Button>
               </DialogFooter>
@@ -421,6 +450,8 @@ export const SubjectsTab = ({
           </Dialog>
         </div>
       )}
+
+      {/* --- DANH SÁCH MÔN HỌC --- */}
       <div className="border border-border rounded-md bg-card overflow-hidden">
         <div className="grid grid-cols-12 gap-2 p-3 bg-muted/50 font-semibold text-muted-foreground text-sm border-b border-border">
           <div className="col-span-1 text-center">#</div>
@@ -499,8 +530,9 @@ export const SubjectsTab = ({
                                   <div className="opacity-0 group-hover:opacity-100 flex gap-1">
                                     <Pencil
                                       className="w-3 h-3 cursor-pointer"
+                                      // --- THAY THẾ: Gọi modal sửa task ---
                                       onClick={() =>
-                                        handleEditTask(t.id, t.name)
+                                        openEditTaskDialog(t.id, t.name)
                                       }
                                     />
                                     <Trash2
@@ -515,11 +547,9 @@ export const SubjectsTab = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-5 p-0 text-primary text-xs"
-                                onClick={() => {
-                                  const t = prompt("Task name:");
-                                  if (t) handleAddTask(item.id, t);
-                                }}
+                                className="h-5 p-0 text-primary text-xs cursor-pointer"
+                                // --- THAY THẾ: Gọi modal thêm task ---
+                                onClick={() => openAddTaskDialog(item.id)}
                               >
                                 + Add Task
                               </Button>
@@ -527,6 +557,7 @@ export const SubjectsTab = ({
                           </div>
                         </div>
 
+                        {/* ... (Các cột khác giữ nguyên) ... */}
                         <div className="col-span-3 flex flex-col gap-2">
                           {isEditing ? (
                             <Input
@@ -616,7 +647,7 @@ export const SubjectsTab = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive h-8 w-8"
+                              className="text-destructive h-8 w-8 cursor-pointer"
                               onClick={() => confirmDeleteSubject(item.id)}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -633,6 +664,50 @@ export const SubjectsTab = ({
           </Droppable>
         </DragDropContext>
       </div>
+
+      {/* --- NEW: DIALOG FOR ADDING/EDITING TASKS --- */}
+      <Dialog
+        open={taskDialog.isOpen}
+        onOpenChange={(open) =>
+          !open && setTaskDialog((prev) => ({ ...prev, isOpen: false }))
+        }
+      >
+        <DialogContent className="sm:max-w-[425px] z-50">
+          <DialogHeader>
+            <DialogTitle>
+              {taskDialog.mode === "add" ? "Add New Task" : "Edit Task"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="taskName">Task Name</Label>
+              <Input
+                id="taskName"
+                value={taskNameInput}
+                onChange={(e) => setTaskNameInput(e.target.value)}
+                placeholder="Enter task name..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveTask();
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setTaskDialog((prev) => ({ ...prev, isOpen: false }))
+              }
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTask} className="cursor-pointer">
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

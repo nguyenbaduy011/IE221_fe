@@ -539,14 +539,13 @@ export default function SupervisorCourseDetailPage() {
                           </div>
 
                           {/* Cột 4: Nút Detail (MỚI) */}
-                          <div className="flex-shrink-0 pl-2 border-l ml-2">
+                          <div className="shrink-0 pl-2 border-l ml-2">
                             <Button
                               variant="ghost"
                               size="icon"
                               className="text-primary hover:bg-primary/10 hover:text-primary cursor-pointer"
                               title="View Subject Details"
                               onClick={() =>
-                                // Chuyển hướng đến: /supervisor/courses/{courseId}/subjects/{course_subject_id}
                                 router.push(
                                   `/supervisor/courses/${courseId}/subject/${item.id}`
                                 )

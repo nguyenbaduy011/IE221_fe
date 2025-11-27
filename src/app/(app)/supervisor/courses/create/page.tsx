@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -181,7 +182,12 @@ export default function SupervisorCreateCoursePage() {
   return (
     <div className="container mx-auto p-6 max-w-5xl pb-24">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          className="cursor-pointer"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -399,7 +405,7 @@ export default function SupervisorCreateCoursePage() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            className="absolute top-2 right-2 h-6 w-6"
+                            className="absolute top-2 right-2 h-6 w-6 cursor-pointer"
                             onClick={removeImage}
                             type="button"
                           >
@@ -491,10 +497,15 @@ export default function SupervisorCreateCoursePage() {
                 variant="outline"
                 type="button"
                 onClick={() => router.back()}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer"
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}

@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { FilterState } from "./DailyReportsClient";
 
-
 type Course = { id: number; name: string };
 
 type Props = {
@@ -49,12 +48,10 @@ export default function DailyReportsFilter({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-4 mb-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+    <div className="bg-card text-card-foreground p-4 mb-6 rounded-xl shadow-lg border border-border">
       <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-4">
         <div className="flex flex-col space-y-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Course
-          </label>
+          <label className="text-sm font-medium text-foreground">Course</label>
           <Select
             value={courseId !== null ? String(courseId) : "ALL"}
             onValueChange={(val) =>
@@ -78,12 +75,10 @@ export default function DailyReportsFilter({
         </div>
 
         <div className="flex flex-col space-y-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Date
-          </label>
+          <label className="text-sm font-medium text-foreground">Date</label>
           <Input
             type="date"
-            className="w-44 border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+            className="w-44"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
@@ -92,7 +87,8 @@ export default function DailyReportsFilter({
         <div className="flex gap-2">
           <Button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 font-semibold transition"
+            variant="default"
+            className="font-semibold cursor-pointer"
           >
             Apply Filter
           </Button>
@@ -100,7 +96,7 @@ export default function DailyReportsFilter({
             type="button"
             variant="outline"
             onClick={handleReset}
-            className="font-semibold"
+            className="font-semibold cursor-pointer"
           >
             Reset
           </Button>
@@ -109,7 +105,8 @@ export default function DailyReportsFilter({
         <Link href="/trainee/daily-reports/new" className="ml-auto">
           <Button
             type="button"
-            className="bg-green-600 hover:bg-green-700 font-semibold transition"
+            variant="default"
+            className="font-semibold cursor-pointer"
           >
             + Create New Report
           </Button>

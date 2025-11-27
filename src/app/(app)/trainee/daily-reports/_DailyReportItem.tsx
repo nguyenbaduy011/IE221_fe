@@ -117,6 +117,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
                 size="sm"
                 onClick={() => setIsDeleteModalOpen(true)}
                 disabled={isDeleting || isSubmitting}
+                className="cursor-pointer"
               >
                 {isDeleting ? (
                   "Deleting..."
@@ -132,6 +133,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
                   variant="outline"
                   size="sm"
                   disabled={isDeleting || isSubmitting}
+                  className="cursor-pointer"
                 >
                   <Edit className="w-4 h-4 mr-1" /> Edit
                 </Button>
@@ -142,6 +144,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
                 size="sm"
                 onClick={() => setIsSubmitModalOpen(true)}
                 disabled={isDeleting || isSubmitting}
+                className="cursor-pointer"
               >
                 {isSubmitting ? (
                   "Submitting..."
@@ -154,7 +157,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
             </>
           ) : (
             <Link href={`/trainee/daily-reports/${dailyReport.id}`}>
-              <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" className="cursor-pointer">
                 <Eye className="w-4 h-4 mr-1" /> View Details
               </Button>
             </Link>
@@ -178,6 +181,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
               variant="ghost"
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={isDeleting}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
@@ -185,6 +189,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
+              className="cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>
@@ -208,6 +213,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
               variant="ghost"
               onClick={() => setIsSubmitModalOpen(false)}
               disabled={isSubmitting}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
@@ -215,6 +221,7 @@ export default function DailyReportItem({ dailyReport, onRefresh }: Props) {
               variant="default"
               onClick={confirmSubmit}
               disabled={isSubmitting}
+              className="cursor-pointer"
             >
               {isSubmitting ? "Submitting..." : "Confirm Submit"}
             </Button>

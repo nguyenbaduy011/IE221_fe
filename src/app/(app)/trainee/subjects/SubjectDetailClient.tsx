@@ -83,7 +83,7 @@ export default function SubjectDetailClient({ initialId }: Props) {
         <p className="text-muted-foreground">
           Subject ID #{initialId} does not exist or you are not enrolled.
         </p>
-        <Button variant="outline" onClick={() => router.back()}>
+        <Button variant="outline" onClick={() => router.back()} className="cursor-pointer">
           <ArrowLeft className="w-4 h-4 mr-2" /> Go back
         </Button>
       </div>

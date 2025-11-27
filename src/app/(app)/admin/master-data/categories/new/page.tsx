@@ -108,10 +108,13 @@ export default function NewCategoryPage() {
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
+                  className="cursor-pointer"
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Create</Button>
+                <Button type="submit" className="cursor-pointer">
+                  Create
+                </Button>
               </div>
             </form>
           </Form>

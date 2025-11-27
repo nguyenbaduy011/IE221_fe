@@ -154,7 +154,6 @@ export function DataTable({
           Reset
         </Button>
 
-        {/* ACTION BUTTONS */}
         {showBulkDeactivate && (
           <Button
             variant="destructive"
