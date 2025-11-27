@@ -44,11 +44,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import dayjs from "dayjs";
 
-import {
-  SubjectDetail,
-  TaskStatus,
-  Trainee,
-} from "@/types/subjectDetails";
+import { SubjectDetail, TaskStatus, Trainee } from "@/types/subjectDetails";
 import { subjectApi } from "@/lib/subjectApi";
 
 const getInitials = (name: string) =>
@@ -619,8 +615,15 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
                           <Input
                             type="number"
                             value={score}
-                            onChange={(e) => setScore(Number(e.target.value))}
-                            className="text-xl font-bold text-center border-2 border-primary/30 focus:border-primary"
+                            onChange={(e) => {
+                              let val = parseFloat(e.target.value);
+                              if (isNaN(val)) val = 0;
+                              if (val > subjectData.max_score)
+                                val = subjectData.max_score;
+                              if (val < 0) val = 0;
+                              setScore(val);
+                            }}
+                            className="text-xl font-bold text-center border-2 border-primary/30 focus:border-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             max={subjectData.max_score}
                             min={0}
                           />
@@ -684,7 +687,10 @@ export default function TraineeSubjectDetailPage({ params }: PageProps) {
 
                           {/* THÊM MÀU CHO BADGE */}
                           <Badge
-                            className={`mt-4 border font-bold px-3 py-1 text-sm ${getScoreBadgeVariant(subjectData.score, subjectData.max_score)}`}
+                            className={`mt-4 border font-bold px-3 py-1 text-sm ${getScoreBadgeVariant(
+                              subjectData.score,
+                              subjectData.max_score
+                            )}`}
                             variant="outline"
                           >
                             {getScoreLabel(
