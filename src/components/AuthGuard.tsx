@@ -7,12 +7,26 @@ import { Spinner } from "@/components/ui/spinner";
 
 const publicPaths = ["/login", "/register", "/activate", "/verify-email"];
 
+const getHomeUrl = (role?: string) => {
+  switch (role) {
+    case "ADMIN":
+      return "/admin/dashboard";
+    case "SUPERVISOR":
+      return "/supervisor/dashboard";
+    case "TRAINEE":
+      return "/trainee/courses";
+    default:
+      return "/";
+  }
+};
+
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
+    // 1. Nếu đang load thì chưa làm gì
     if (isLoading) {
       return;
     }
@@ -25,24 +39,28 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (isAuthenticated && isPublic) {
-      const redirectTo =
-        user?.role === "SUPERVISOR"
-          ? "/supervisor/dashboard"
-          : user?.role === "TRAINEE"
-            ? "/trainee/courses"
-            : user?.role === "ADMIN"
-              ? "/admin/dashboard"
-              : "/";
-      router.push(redirectTo);
+      const homeUrl = getHomeUrl(user?.role);
+      router.push(homeUrl);
       return;
     }
 
     if (isAuthenticated && !isPublic) {
-      if (pathname.startsWith("/admin") && user?.role !== "ADMIN") {
-        router.push("/admin/dashboard");
+      const userRole = user?.role;
+      const homeUrl = getHomeUrl(userRole);
+
+      if (pathname.startsWith("/admin") && userRole !== "ADMIN") {
+        router.push(homeUrl);
+        return;
       }
-      if (pathname.startsWith("/supervisor") && user?.role !== "SUPERVISOR") {
-        router.push("/supervisor/dashboard");
+
+      if (pathname.startsWith("/supervisor") && userRole !== "SUPERVISOR") {
+        router.push(homeUrl);
+        return;
+      }
+
+      if (pathname.startsWith("/trainee") && userRole !== "TRAINEE") {
+        router.push(homeUrl);
+        return;
       }
     }
   }, [isLoading, isAuthenticated, user, pathname, router]);

@@ -61,6 +61,14 @@ export function SupervisorCourseDataTable<TData, TValue>({
     },
   });
 
+  const statusFilterValue = table.getColumn("status")?.getFilterValue();
+  const currentStatusValue =
+    statusFilterValue !== undefined ? String(statusFilterValue) : "ALL";
+
+  const isFiltered =
+    table.getColumn("name")?.getFilterValue() ||
+    table.getColumn("status")?.getFilterValue() !== undefined;
+
   return (
     <div className="space-y-4">
       {/* TOOLBAR */}
@@ -83,41 +91,51 @@ export function SupervisorCourseDataTable<TData, TValue>({
 
           {/* FILTER BY STATUS */}
           <Select
-            value={
-              (table.getColumn("status")?.getFilterValue() as string) ?? "ALL"
-            }
+            value={currentStatusValue}
             onValueChange={(value) => {
               if (value === "ALL") {
                 table.getColumn("status")?.setFilterValue(undefined);
               } else {
+                // Ép kiểu về Number vì status trong DB/API trả về là số (0, 1, 2)
                 table.getColumn("status")?.setFilterValue(Number(value));
               }
             }}
           >
-            <SelectTrigger className="w-full sm:w-[150px] bg-background">
+            <SelectTrigger className="w-full sm:w-[150px] bg-background cursor-pointer">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Status</SelectItem>
-              <SelectItem value={String(CourseStatus.NOT_STARTED)}>
-                Upcoming
+              <SelectItem className="cursor-pointer" value="ALL">
+                All Status
               </SelectItem>
-              <SelectItem value={String(CourseStatus.IN_PROGRESS)}>
-                Active
+              <SelectItem
+                className="cursor-pointer"
+                value={String(CourseStatus.NOT_STARTED)}
+              >
+                Not Started
               </SelectItem>
-              <SelectItem value={String(CourseStatus.FINISHED)}>
-                Completed
+              <SelectItem
+                className="cursor-pointer"
+                value={String(CourseStatus.IN_PROGRESS)}
+              >
+                In Progress
+              </SelectItem>
+              <SelectItem
+                className="cursor-pointer"
+                value={String(CourseStatus.FINISHED)}
+              >
+                Finished
               </SelectItem>
             </SelectContent>
           </Select>
 
           {/* RESET BUTTON */}
-          {(table.getColumn("name")?.getFilterValue() ||
-            table.getColumn("status")?.getFilterValue() !== undefined) && (
+          {isFiltered && (
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => table.resetColumnFilters()}
-              className="px-2 lg:px-3 cursor-pointer"
+              className="px-2 lg:px-3 cursor-pointer h-10"
             >
               Reset
             </Button>

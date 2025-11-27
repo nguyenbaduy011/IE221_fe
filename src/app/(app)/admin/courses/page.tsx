@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -8,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { DashboardCourse } from "@/types/course";
 import { adminApi } from "@/lib/adminApi";
 import Link from "next/link";
-import { CourseDataTable } from "./course-data-table";
 import { getAdminColumns } from "./admin-course-columns";
+import { CourseDataTable } from "./course-data-table";
 
 export default function AdminCourseManagementPage() {
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
@@ -29,6 +28,7 @@ export default function AdminCourseManagementPage() {
         setCourses([]);
       }
     } catch (error) {
+      console.error("Failed to fetch courses", error);
     } finally {
       setLoading(false);
     }

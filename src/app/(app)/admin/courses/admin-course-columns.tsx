@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -12,7 +13,7 @@ import {
   Edit,
   Trash2,
   ExternalLink,
-  AlertCircle, // Import thêm icon này
+  AlertCircle,
 } from "lucide-react";
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +32,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/components/ui/dialog"; // Import các component Dialog
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { adminApi } from "@/lib/adminApi";
@@ -135,7 +136,7 @@ const ActionCell = ({ course }: { course: DashboardCourse }) => {
 
             <DropdownMenuItem
               onSelect={(e) => {
-                e.preventDefault(); // Ngăn dropdown đóng ngay lập tức để dialog hoạt động mượt hơn
+                e.preventDefault();
                 setIsDeleteDialogOpen(true);
               }}
               className="text-destructive focus:text-destructive focus:bg-destructive/10 dark:focus:bg-destructive/20 cursor-pointer"
@@ -146,7 +147,6 @@ const ActionCell = ({ course }: { course: DashboardCourse }) => {
         </DropdownMenu>
       </div>
 
-      {/* Dialog xác nhận xóa */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="z-50">
           <DialogHeader>
@@ -233,6 +233,13 @@ export const getAdminColumns: ColumnDef<DashboardCourse>[] = [
           )}
         </div>
       );
+    },
+    // --- Logic Filter cho Category (Mảng object) ---
+    filterFn: (row, id, value) => {
+      const categories = (row.getValue(id) as any[]) || [];
+      if (value === "ALL") return true;
+      // Kiểm tra xem có category nào trong mảng trùng ID với filter không
+      return categories.some((cat) => String(cat.id) === String(value));
     },
   },
   {

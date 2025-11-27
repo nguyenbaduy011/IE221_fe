@@ -11,10 +11,10 @@ import {
 } from "lucide-react";
 import { supervisorApi } from "@/lib/supervisorApi";
 import { Card, CardContent } from "@/components/ui/card";
-import { SupervisorCourseDataTable } from "./course-data-table";
 import { getColumns } from "./course-columns";
 import { DashboardCourse, DashboardStats } from "@/types/course";
 import { OverviewSection } from "./overview-section";
+import { SupervisorCourseDataTable } from "./course-data-table";
 
 const StatCard = ({
   title,

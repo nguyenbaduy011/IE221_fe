@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { DashboardCourse, CourseStatus } from "@/types/course";
@@ -23,6 +24,7 @@ import {
 import dayjs from "dayjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 const getInitials = (name: string) => {
   return name
@@ -55,6 +57,15 @@ interface CourseDetailDialogProps {
 }
 
 export function CourseDetailDialog({ course }: CourseDetailDialogProps) {
+  const { user } = useAuth();
+
+  const isSupervisor =
+    user?.role === "SUPERVISOR" || (user as any)?.role_id === 2;
+
+  const detailHref = isSupervisor
+    ? `/supervisor/courses/${course.id}`
+    : `/admin/courses/${course.id}`;
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -175,13 +186,10 @@ export function CourseDetailDialog({ course }: CourseDetailDialogProps) {
               Close
             </Button>
           </DialogClose>
-          <Button
-            asChild
-            className="cursor-pointer font-medium"
-          >
-            <Link
-              href={`/admin/courses/${course.id}`}
-            >
+
+          {/* 4. Sử dụng biến detailHref đã tính toán ở trên */}
+          <Button asChild className="cursor-pointer font-medium">
+            <Link href={detailHref}>
               <ExternalLink className="mr-2 h-4 w-4" /> View Details
             </Link>
           </Button>
