@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { subjectApi } from "@/lib/subjectApi";
+import { updateTaskSchema } from "@/validations/taskValidation";
 
 type Props = {
   task: Task;
@@ -29,12 +30,31 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
     }
   };
 
-  const handleHoursBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+const handleHoursBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     let val = parseFloat(e.target.value);
-    if (isNaN(val) || val < 0) return;
 
+    // 1. Nếu xóa trắng hoặc không phải số thì bỏ qua
+    if (isNaN(val)) return;
+
+    // 2. Validate số âm bằng Zod (hoặc if else thủ công)
+    // Cách 1: Kiểm tra thủ công nhanh
+    if (val < 0) {
+        toast.error("Time cannot be negative"); // Báo lỗi cho user
+        e.target.value = "0"; // Reset về 0 hoặc giá trị cũ
+        return; // Dừng lại, không gọi API
+    }
+
+    // Cách 2: Dùng Zod Schema vừa tạo để kiểm tra (Chuyên nghiệp hơn)
+    const validateResult = updateTaskSchema.safeParse({ spent_time: val });
+    if (!validateResult.success) {
+        toast.error(validateResult.error.issues[0].message);
+        return;
+    }
+
+    // Làm tròn số
     val = Math.round(val * 10) / 10;
 
+    // Chỉ gọi API nếu giá trị thay đổi
     if (val !== task.spent_time) {
       try {
         const formData = new FormData();
@@ -112,6 +132,7 @@ export default function TaskItem({ task, onUpdate, disabled = false }: Props) {
             <Input
                 type="number"
                 step="0.1"
+                min="0"
                 defaultValue={task.spent_time ?? ""}
                 onBlur={handleHoursBlur}
                 disabled={disabled}
