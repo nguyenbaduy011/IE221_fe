@@ -55,8 +55,12 @@ export function UserDetailDialog({ user }: { user: User }) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-start gap-4 pb-3 border-b last:border-b-0 last:pb-0">
-      <span className="font-semibold text-slate-700">{label}</span>
-      <span className="text-slate-600 text-right">{value}</span>
+      <span className="font-semibold text-slate-700 dark:text-gray-300">
+        {label}
+      </span>
+      <span className="text-slate-600 dark:text-gray-50 text-right">
+        {value}
+      </span>
     </div>
   );
 }
