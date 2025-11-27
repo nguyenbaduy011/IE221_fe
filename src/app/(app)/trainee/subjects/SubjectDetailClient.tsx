@@ -162,7 +162,11 @@ export default function SubjectDetailClient({ initialId }: Props) {
             />
           </div>
 
-          <CompletionBox detail={detail} onRefresh={fetchDetail} />
+          <CompletionBox
+            detail={detail}
+            onRefresh={fetchDetail}
+            courseSubjectId={initialId}
+          />
         </div>
       </div>
     </div>
