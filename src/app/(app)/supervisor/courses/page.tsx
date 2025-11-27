@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, BookOpen, Plus } from "lucide-react"; // Import thêm icon Plus
-import { Button } from "@/components/ui/button"; // Import Button component
-import Link from "next/link"; // Import Link component
+import { Loader2, BookOpen, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { DashboardCourse } from "@/types/course";
 import { supervisorApi } from "@/lib/supervisorApi";
 import { CourseDataTable } from "./course-data-table";
@@ -22,6 +22,7 @@ export default function SupervisorCourseManagementPage() {
       const payload = (response as any).data || response;
       let data: DashboardCourse[] = [];
 
+      // Xử lý các trường hợp trả về dữ liệu khác nhau của API
       if (Array.isArray(payload)) {
         data = payload;
       } else if (payload && Array.isArray(payload.data)) {

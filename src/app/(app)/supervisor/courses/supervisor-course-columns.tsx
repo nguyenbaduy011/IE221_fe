@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -61,7 +62,6 @@ const StatusBadge = ({ status }: { status: number }) => {
   }
 };
 
-// Action Cell: CHỈ CÓ VIEW & EDIT, KHÔNG CÓ DELETE
 const SupervisorActionCell = ({ course }: { course: DashboardCourse }) => {
   const router = useRouter();
 
@@ -153,6 +153,11 @@ export const getSupervisorColumns: ColumnDef<DashboardCourse>[] = [
           )}
         </div>
       );
+    },
+    filterFn: (row, id, value) => {
+      const categories = (row.getValue(id) as any[]) || [];
+      if (value === "ALL") return true;
+      return categories.some((cat) => String(cat.id) === String(value));
     },
   },
   {

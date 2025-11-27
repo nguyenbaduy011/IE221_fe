@@ -10,11 +10,11 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { SupervisorCourseDataTable } from "./course-data-table";
-import { getColumns } from "./course-columns";
 import { DashboardCourse, DashboardStats } from "@/types/course";
-import { OverviewSection } from "./overview-section";
 import { adminApi } from "@/lib/adminApi";
+import { getColumns } from "./course-columns";
+import { OverviewSection } from "./overview-section";
+import { CourseDataTable } from "./course-data-table";
 
 const StatCard = ({
   title,
@@ -44,7 +44,7 @@ const StatCard = ({
   );
 };
 
-export default function SupervisorDashboard() {
+export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,7 +147,7 @@ export default function SupervisorDashboard() {
           </h2>
         </div>
         <div className="p-6">
-          <SupervisorCourseDataTable columns={getColumns} data={courses} />
+          <CourseDataTable columns={getColumns} data={courses} />
         </div>
       </div>
     </div>

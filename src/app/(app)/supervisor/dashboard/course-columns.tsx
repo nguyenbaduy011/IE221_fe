@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { type DashboardCourse, CourseStatus } from "@/types/course";
+import { type DashboardCourse } from "@/types/course"; // Xóa CourseStatus vì không dùng nữa
 import { Badge } from "@/components/ui/badge";
 import { Calendar, BookOpen } from "lucide-react";
 import dayjs from "dayjs";
@@ -22,33 +22,42 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
+// Cập nhật lại StatusBadge để khớp logic với trang Quản lý (0, 1, 2)
 const StatusBadge = ({ status }: { status: number }) => {
   switch (status) {
-    case CourseStatus.NOT_STARTED:
+    case 0: // Not Started
       return (
-        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
-          Upcoming
+        <Badge
+          variant="outline"
+          className="bg-muted text-muted-foreground border-border hover:bg-muted/80"
+        >
+          Not Started
         </Badge>
       );
-    case CourseStatus.IN_PROGRESS:
+    case 1: // In Progress
       return (
-        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
-          Active
+        <Badge
+          variant="outline"
+          className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
+        >
+          In Progress
         </Badge>
       );
-    case CourseStatus.FINISHED:
+    case 2: // Finished
       return (
-        <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border-emerald-200">
-          Completed
+        <Badge
+          variant="outline"
+          className="bg-green-100 text-green-700 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+        >
+          Finished
         </Badge>
       );
     default:
-      return null;
+      return <Badge variant="secondary">Unknown</Badge>;
   }
 };
 
 export const getColumns: ColumnDef<DashboardCourse>[] = [
-
   {
     accessorKey: "name",
     header: "Course Name",
@@ -137,7 +146,6 @@ export const getColumns: ColumnDef<DashboardCourse>[] = [
     },
   },
 
-
   {
     accessorKey: "start_date",
     header: "Duration",
@@ -163,8 +171,8 @@ export const getColumns: ColumnDef<DashboardCourse>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    filterFn: "equals",
   },
-
 
   {
     accessorKey: "supervisor_count",

@@ -13,7 +13,6 @@ import {
   BookOpen,
   Users,
   AlertCircle,
-  ArrowLeft,
   Eye,
   Clock,
 } from "lucide-react";
@@ -23,7 +22,7 @@ import { toast, Toaster } from "sonner";
 import axiosClient from "@/lib/axiosClient";
 import { courseApi } from "@/lib/courseApi";
 import { adminApi, AdminCourseDetail } from "@/lib/adminApi";
-import { supervisorApi } from "@/lib/supervisorApi"; // Thêm import này
+import { supervisorApi } from "@/lib/supervisorApi"; 
 import { User } from "@/types/user";
 import {
   UserRole,
@@ -497,7 +496,7 @@ export default function SupervisorCourseDetailPage() {
                           className="flex items-center p-4 gap-4 border rounded-lg hover:border-primary/40 transition-colors bg-card"
                         >
                           {/* Cột 1: Index Badge */}
-                          <div className="flex-shrink-0">
+                          <div className="shrink-0">
                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border border-primary/20">
                               {index + 1}
                             </div>

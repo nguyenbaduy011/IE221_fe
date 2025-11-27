@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { getHomeUrl } from "@/lib/roleUtils";
 
 export default function Home() {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
@@ -13,18 +14,9 @@ export default function Home() {
   useEffect(() => {
     if (isLoading || !isAuthenticated || !user) return;
 
-    switch (user.role) {
-      case "ADMIN":
-        router.push("/admin/dashboard");
-        break;
-      case "TRAINEE":
-        router.push("/trainee/courses");
-        break;
-      case "SUPERVISOR":
-        router.push("/supervisor/dashboard");
-        break;
-      default:
-        break;
+    const targetUrl = getHomeUrl(user.role);
+    if (targetUrl !== "/") {
+      router.push(targetUrl);
     }
   }, [isAuthenticated, user, isLoading, router]);
 
